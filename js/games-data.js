@@ -12,7 +12,7 @@ const SITE_CONFIG = {
   minSecondsBetweenAds: 20,
   announcement: "",
   announcementEnabled: false,
-  contactEmail: "hello@playnova.example",
+  contactEmail: "khairul2052007@gmail.com",
   adminUser: "",
   adminPass: ""
 };
