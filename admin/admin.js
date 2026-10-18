@@ -204,7 +204,10 @@
       ["🔢 2048", "gvp_2048_best"],
       ["🐦 Flappy Bird", "gvp_flappy_best"],
       ["🧱 Brick Breaker", "gvp_breakout_best"],
-      ["⚡ Reaction Rush", "gvp_reaction_best"]
+      ["⚡ Reaction Rush", "gvp_reaction_best"],
+      ["💣 Mine Field", "gvp_mines_best"],
+      ["🎨 Color Sequence", "gvp_simon_best"],
+      ["⌨️ Typing Speed", "gvp_typing_best"]
     ];
     var html = "";
     var any = false;

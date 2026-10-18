@@ -177,6 +177,54 @@ const GAMES = [
     iframe: "games/reaction.html",
     featured: false,
     enabled: true
+  },
+  {
+    id: "minesweeper",
+    title: "Mine Field",
+    category: "adult",
+    tags: ["puzzle", "mines", "classic"],
+    icon: "💣",
+    color: "#FF3D9A",
+    thumb: "public/brand/games/thumb-minesweeper.svg",
+    addedAt: "2026-10-17",
+    description: "Mine bhora mati — nirdishto kore shob mine olkai felun, ekta bhul-e shesh!",
+    players: "1 Player",
+    controls: "Click / Right-click / Tap",
+    iframe: "games/minesweeper.html",
+    featured: true,
+    enabled: true
+  },
+  {
+    id: "simon",
+    title: "Color Sequence",
+    category: "kids",
+    tags: ["memory", "sequence", "brain"],
+    icon: "🎨",
+    color: "#20C997",
+    thumb: "public/brand/games/thumb-simon.svg",
+    addedAt: "2026-10-17",
+    description: "Ranger sequence mune rakhun ar repeat korun — level barle sequence boro hobe!",
+    players: "1 Player",
+    controls: "Click / Tap",
+    iframe: "games/simon.html",
+    featured: true,
+    enabled: true
+  },
+  {
+    id: "typing",
+    title: "Typing Speed",
+    category: "educational",
+    tags: ["typing", "english", "speed"],
+    icon: "⌨️",
+    color: "#7C4DFF",
+    thumb: "public/brand/games/thumb-typing.svg",
+    addedAt: "2026-10-17",
+    description: "60 second-e toto beshi shabdho — typing ar WPM hobe proshikshan!",
+    players: "1 Player",
+    controls: "Keyboard",
+    iframe: "games/typing.html",
+    featured: false,
+    enabled: true
   }
 ];
 

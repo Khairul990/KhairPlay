@@ -153,6 +153,52 @@ const GVP = (function () {
     }
     const stat = document.getElementById("statGames");
     if (stat) stat.textContent = GAMES.filter(function (g) { return g.enabled; }).length;
+    initMotion();
+  }
+
+  function initMotion() {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const targets = document.querySelectorAll(
+      ".section .section-head, .cat-card, .game-card, .content-card, .hero-stats .stat"
+    );
+    if (!("IntersectionObserver" in window)) {
+      targets.forEach(function (el) { el.classList.add("in"); });
+      return;
+    }
+    const groups = new Map();
+    targets.forEach(function (el) {
+      if (el.classList.contains("reveal")) return;
+      el.classList.add("reveal");
+      const parent = el.parentElement;
+      if (!groups.has(parent)) groups.set(parent, 0);
+      const i = groups.get(parent);
+      el.style.setProperty("--reveal-delay", Math.min(i * 65, 400) + "ms");
+      groups.set(parent, i + 1);
+    });
+    const io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          en.target.classList.add("in");
+          io.unobserve(en.target);
+          const b = en.target.querySelector("b[id]");
+          if (b && /^\d+$/.test(b.textContent)) animateCount(b, parseInt(b.textContent, 10), 900);
+        });
+      },
+      { threshold: 0.12 }
+    );
+    targets.forEach(function (el) { io.observe(el); });
+  }
+
+  function animateCount(el, to, dur) {
+    const start = performance.now();
+    function frame(now) {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(to * eased);
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
   }
 
   function initGamesPage() {

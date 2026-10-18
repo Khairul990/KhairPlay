@@ -625,3 +625,161 @@ h1, h2, h3, h4 { font-family: var(--font-head); letter-spacing: 0.2px; }
   .footer-grid { grid-template-columns: 1fr; }
   .hero { padding: 38px 0 24px; }
 }
+
+/* ============ NEXT-LEVEL MOTION SYSTEM ============ */
+
+/* page enter */
+@keyframes pnFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+body { animation: pnFadeUp 0.45s ease both; }
+
+/* hero floating orbs */
+.hero { position: relative; overflow: hidden; }
+.hero .container { position: relative; z-index: 1; }
+.hero-orbs { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hero-orbs .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.35;
+  will-change: transform;
+}
+.hero-orbs .orb-a {
+  width: 380px; height: 380px;
+  left: -90px; top: -120px;
+  background: radial-gradient(circle, #7C4DFF 0%, transparent 70%);
+  animation: pnFloatA 14s ease-in-out infinite;
+}
+.hero-orbs .orb-b {
+  width: 320px; height: 320px;
+  right: -70px; top: 40px;
+  background: radial-gradient(circle, #00D5FF 0%, transparent 70%);
+  animation: pnFloatB 17s ease-in-out infinite;
+}
+.hero-orbs .orb-c {
+  width: 240px; height: 240px;
+  left: 42%; bottom: -140px;
+  background: radial-gradient(circle, #FF3D9A 0%, transparent 70%);
+  animation: pnFloatC 20s ease-in-out infinite;
+}
+@keyframes pnFloatA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, 34px) scale(1.12); }
+}
+@keyframes pnFloatB {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-44px, 28px) scale(0.92); }
+}
+@keyframes pnFloatC {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(36px, -40px) scale(1.15); }
+}
+
+/* scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+/* hero kicker pulse */
+.hero-kicker { animation: pnKicker 3.2s ease-in-out infinite; }
+@keyframes pnKicker {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 213, 255, 0.0); }
+  50% { box-shadow: 0 0 22px 2px rgba(0, 213, 255, 0.25); }
+}
+
+/* logo icon playful hover */
+.logo img.logo-icon { transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.logo:hover img.logo-icon { transform: rotate(-8deg) scale(1.08); }
+
+/* buttons: shine sweep */
+.btn-primary { position: relative; overflow: hidden; }
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -80%;
+  width: 50%; height: 100%;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+}
+.btn-primary:hover::after { left: 130%; }
+
+/* category card icon bounce */
+.cat-card .cat-icon { display: inline-block; transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cat-card:hover .cat-icon { transform: translateY(-4px) scale(1.14); }
+
+/* game card: thumb zoom + overlay play hint */
+.game-thumb img { transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.game-card:hover .game-thumb img { transform: scale(1.07); }
+.game-body h3 { transition: color 0.2s; }
+.game-card:hover .game-body h3 { color: var(--cyan); }
+
+/* play button pulse ring on hover */
+.play-btn { position: relative; overflow: hidden; transition: transform 0.18s ease, filter 0.2s ease; }
+.play-btn:hover { transform: translateY(-1px); }
+.play-btn:active { transform: scale(0.97); }
+
+/* section accent slide-in */
+.section-head h2 .accent {
+  transform: scaleY(0.4);
+  opacity: 0;
+  transform-origin: center;
+  transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.section-head.in h2 .accent, .reveal.in .accent { transform: scaleY(1); opacity: 1; }
+
+/* announcement gradient shift */
+.announce.show {
+  background: linear-gradient(90deg, #7C4DFF, #00D5FF, #FF3D9A, #7C4DFF);
+  background-size: 300% 100%;
+  animation: pnAnnounce 8s linear infinite;
+  color: #080B16;
+}
+@keyframes pnAnnounce {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* stat number glow */
+.stat b { text-shadow: 0 0 24px rgba(0, 213, 255, 0.25); }
+
+/* nav dropdown smooth (mobile) */
+.nav-links { transform-origin: top; }
+@media (max-width: 760px) {
+  .nav-links.open { animation: pnMenuIn 0.25s ease both; }
+  @keyframes pnMenuIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* toast pop */
+.toast.show { animation: pnToast 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes pnToast {
+  from { transform: translateX(-50%) translateY(16px) scale(0.92); }
+  to { transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* content card hover lift */
+.content-card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+.content-card:hover { transform: translateY(-3px); border-color: rgba(124, 77, 255, 0.4); }
+
+/* play page frame glow */
+.game-frame-box { transition: box-shadow 0.4s ease, border-color 0.4s ease; }
+.game-frame-box:hover { box-shadow: 0 0 0 1px rgba(124, 77, 255, 0.45), 0 16px 48px rgba(124, 77, 255, 0.22); }
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}

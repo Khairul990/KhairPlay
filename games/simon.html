@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Sequence</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:14px}
+.title{font-size:clamp(22px,5vw,30px);font-weight:800;background:linear-gradient(135deg,#7C4DFF,#00D5FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#00D5FF}
+.status{min-height:24px;font-size:15px;font-weight:600;color:#A9B5CC;text-align:center}
+.pads{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:min(320px,86vw)}
+.pad{aspect-ratio:1;border-radius:18px;border:2px solid rgba(255,255,255,.12);cursor:pointer;transition:transform .12s,filter .15s,box-shadow .15s;opacity:.75}
+.pad:hover{transform:scale(1.03)}
+.pad.lit{opacity:1;transform:scale(1.05);filter:brightness(1.45)}
+.pad.green{background:radial-gradient(circle at 35% 30%,#2ee6a8,#11996a)}
+.pad.red{background:radial-gradient(circle at 35% 30%,#ff6b8a,#c9184a)}
+.pad.yellow{background:radial-gradient(circle at 35% 30%,#ffd166,#c98a00)}
+.pad.blue{background:radial-gradient(circle at 35% 30%,#4cc9f0,#1864ab)}
+.pad:disabled{cursor:default;transform:none}
+.btn{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border:0;padding:12px 26px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.btn.ghost{background:rgba(255,255,255,.07);color:#eef2ff;border:1px solid rgba(255,255,255,.15)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.hint{color:#A9B5CC;font-size:12.5px;text-align:center;max-width:420px}
+.dots{display:flex;gap:6px;min-height:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.15)}
+.dot.on{background:#00D5FF;box-shadow:0 0 8px #00D5FF}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">Color Sequence</div>
+  <div class="hud">
+    <div class="pill">Level: <b id="level">0</b></div>
+    <div class="pill">Streak: <b id="streak">0</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div class="status" id="status">Start doro — sequence mone rakho ar repeat koro!</div>
+  <div class="pads" id="pads">
+    <button class="pad green" data-i="0" aria-label="green"></button>
+    <button class="pad red" data-i="1" aria-label="red"></button>
+    <button class="pad yellow" data-i="2" aria-label="yellow"></button>
+    <button class="pad blue" data-i="3" aria-label="blue"></button>
+  </div>
+  <div class="row">
+    <button class="btn" id="startBtn">▶ Shuru Kor</button>
+  </div>
+  <p class="hint">Sequence dekho, tarpor oi order-ei colors tap koro. Bhul korle streak shesh — notun shuru!</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+var BEST_KEY="gvp_simon_best";
+var LEVELS=["Do","Teen","Chaar","Panch","Chhoy","Saat","Aat","Noy","Dosh","Egaro","Baro","Tero","Chouddo","Ponero","Sholo"];
+var FREQUENCIES=[392,330,262,196];
+var padsEl=document.getElementById("pads"),statusEl=document.getElementById("status"),
+    levelEl=document.getElementById("level"),streakEl=document.getElementById("streak"),
+    bestEl=document.getElementById("best"),dotsEl=document.getElementById("dots"),
+    startBtn=document.getElementById("startBtn");
+var sequence=[],inputIdx=0,level=0,streak=0,accepting=false,audioCtx=null;
+
+function best(){var v=parseInt(localStorage.getItem(BEST_KEY)||"0",10);bestEl.textContent=v;return v}
+
+function ensureAudio(){
+  if(!audioCtx){
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(AC)audioCtx=new AC();
+  }
+  if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume();
+}
+
+function beep(i){
+  if(!audioCtx)return;
+  var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+  osc.type="sine";osc.frequency.value=FREQUENCIES[i];
+  gain.gain.setValueAtTime(0.18,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.35);
+  osc.connect(gain);gain.connect(audioCtx.destination);
+  osc.start();osc.stop(audioCtx.currentTime+0.35);
+}
+
+function light(i,ms){
+  var pad=padsEl.querySelector('.pad[data-i="'+i+'"]');
+  pad.classList.add("lit");beep(i);
+  setTimeout(function(){pad.classList.remove("lit")},ms||300);
+}
+
+function setPads(enabled){
+  padsEl.querySelectorAll(".pad").forEach(function(p){p.disabled=!enabled});
+}
+
+function drawDots(){
+  var html="";
+  for(var i=0;i<sequence.length;i++)html+='<span class="dot'+(i<inputIdx?" on":"")+'"></span>';
+  dotsEl.innerHTML=html;
+}
+
+function levelName(n){return LEVELS[n-1]||String(n)}
+
+function playSequence(){
+  accepting=false;setPads(false);
+  statusEl.textContent="Dekho...";
+  drawDots();
+  var i=0;
+  var iv=setInterval(function(){
+    if(i>0)padsEl.querySelector('.pad[data-i="'+sequence[i-1]+'"]').classList.remove("lit");
+    if(i>=sequence.length){
+      clearInterval(iv);
+      accepting=true;inputIdx=0;setPads(true);
+      statusEl.textContent="Ekhon tap koro!";
+      drawDots();
+      return;
+    }
+    light(sequence[i],350);
+    i++;
+  },500);
+}
+
+function nextRound(){
+  level++;
+  sequence.push(Math.floor(Math.random()*4));
+  levelEl.textContent=level;
+  statusEl.textContent="Level "+levelName(level);
+  setTimeout(playSequence,700);
+}
+
+function startGame(){
+  ensureAudio();
+  sequence=[];inputIdx=0;level=0;
+  streak=0;streakEl.textContent="0";
+  best();
+  startBtn.textContent="🔄 Notun Khel";
+  nextRound();
+}
+
+function fail(){
+  accepting=false;setPads(false);
+  streak=0;streakEl.textContent="0";
+  statusEl.textContent="💥 Bhul hoilo! Sequence: "+sequence.map(function(i){return ["green","red","yellow","blue"][i]}).join(" → ");
+}
+
+function winRound(){
+  accepting=false;
+  var b=best();
+  if(level>b){localStorage.setItem(BEST_KEY,String(level));best()}
+  setTimeout(nextRound,600);
+}
+
+padsEl.addEventListener("click",function(e){
+  var pad=e.target.closest(".pad");
+  if(!pad||!accepting)return;
+  ensureAudio();
+  var i=parseInt(pad.dataset.i,10);
+  light(i,160);
+  if(sequence[inputIdx]===i){
+    inputIdx++;
+    drawDots();
+    if(inputIdx>=sequence.length){
+      streak++;streakEl.textContent=streak;
+      statusEl.textContent="✅ Shundor!";
+      winRound();
+    }
+  }else{
+    fail();
+  }
+});
+startBtn.addEventListener("click",startGame);
+best();
+setPads(false);
+})();
+</script>
+</body>
+</html>

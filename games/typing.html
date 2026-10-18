@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Speed</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:14px}
+.title{font-size:clamp(22px,5vw,30px);font-weight:800;background:linear-gradient(135deg,#7C4DFF,#00D5FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#00D5FF}
+.pill b.warn{color:#FFB020}
+.words{max-width:720px;width:100%;min-height:130px;padding:18px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:14px;font-size:clamp(17px,3.4vw,21px);line-height:1.9;font-weight:600;letter-spacing:.4px}
+.word{color:#A9B5CC;margin-right:10px;transition:color .15s}
+.word.done{color:#20C997}
+.word.current{color:#F7F9FF;border-bottom:2px solid #7C4DFF;padding-bottom:1px}
+.word.bad{color:#FF3D9A;text-decoration:underline wavy rgba(255,61,154,.7)}
+.inputBox{max-width:720px;width:100%}
+.inputBox input{width:100%;padding:14px 18px;border-radius:12px;border:2px solid #2A3855;background:#0D1324;color:#F7F9FF;font-size:17px;font-weight:600;outline:none;font-family:inherit}
+.inputBox input:focus{border-color:#7C4DFF;box-shadow:0 0 0 3px rgba(124,77,255,.25)}
+.inputBox input:disabled{opacity:.5}
+.btn{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border:0;padding:12px 26px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.result{display:none;max-width:720px;width:100%;padding:20px;background:linear-gradient(135deg,rgba(124,77,255,.15),rgba(0,213,255,.1));border:1px solid rgba(124,77,255,.4);border-radius:14px;text-align:center}
+.result.show{display:block;animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.result h2{font-size:26px;margin-bottom:10px}
+.result .grid{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.result .grid div{font-size:14px;color:#A9B5CC}
+.result .grid b{display:block;font-size:26px;color:#00D5FF}
+.hint{color:#A9B5CC;font-size:12.5px;text-align:center;max-width:480px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">Typing Speed</div>
+  <div class="hud">
+    <div class="pill">Time: <b id="time">60s</b></div>
+    <div class="pill">WPM: <b id="wpm">0</b></div>
+    <div class="pill">Accuracy: <b id="acc">100%</b></div>
+    <div class="pill">Best: <b id="best">—</b></div>
+  </div>
+  <div class="words" id="words"></div>
+  <div class="inputBox"><input id="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type here... (shuru holle timer start hobe)" disabled></div>
+  <button class="btn" id="startBtn">▶ Shuru Kor</button>
+  <div class="result" id="result">
+    <h2 id="resTitle"></h2>
+    <div class="grid">
+      <div>WPM<b id="resWpm">0</b></div>
+      <div>Accuracy<b id="resAcc">0%</b></div>
+      <div>Words<b id="resWords">0</b></div>
+      <div>Errors<b id="resErr">0</b></div>
+    </div>
+    <button class="btn" id="againBtn">🔁 Abar Khelun</button>
+  </div>
+  <p class="hint">60 second-e joto beshi shabdho type korte paro toto WPM (words per minute) barbe. Shuddho thakle accuracy 100% thakbe.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+var BEST_KEY="gvp_typing_best";
+var ROUND=60,WORD_COUNT=80;
+var WORDS=("the be of and a to in he have it that for they with as not on she at by this we you do but from or which one would all will there say who make when can more if no man out other so what time up go about than into could state only new year some take come these know see use get like then first any work now may such give over think most even find day also after way many must look before great back through long where much should well people down own just because good each those feel seem how high too place little world very still nation hand old life tell write become here show house both between need mean call develop under last right move thing general school never same another begin while number part turn real leave might want point form off child few small since against ask late home interest large person end open public follow during present without again hold govern around possible head consider word program problem however lead system set order eye plan run keep face fact group play stand increase early course change help line".split(/\s+/));
+var wordsEl=document.getElementById("words"),inputEl=document.getElementById("input"),
+    timeEl=document.getElementById("time"),wpmEl=document.getElementById("wpm"),accEl=document.getElementById("acc"),
+    bestEl=document.getElementById("best"),startBtn=document.getElementById("startBtn"),
+    resultEl=document.getElementById("result"),resTitle=document.getElementById("resTitle"),
+    resWpm=document.getElementById("resWpm"),resAcc=document.getElementById("resAcc"),
+    resWords=document.getElementById("resWords"),resErr=document.getElementById("resErr"),
+    againBtn=document.getElementById("againBtn");
+var list=[],pos=0,timerId=null,left=ROUND,started=false,done=false,totalChars=0,errorChars=0;
+
+function best(){var v=parseInt(localStorage.getItem(BEST_KEY)||"",10);bestEl.textContent=isNaN(v)?"—":v;return v}
+
+function pickWords(){
+  var w=[],pool=WORDS.slice();
+  for(var i=0;i<WORD_COUNT;i++){
+    if(!pool.length)pool=WORDS.slice();
+    w.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  }
+  return w;
+}
+
+function drawWords(){
+  var html="";
+  for(var i=0;i<list.length;i++){
+    var cls="word";
+    if(i<pos)cls+=" done";
+    else if(i===pos)cls+=" current";
+    html+='<span class="'+cls+'">'+list[i]+"</span>";
+  }
+  wordsEl.innerHTML=html;
+  var cur=wordsEl.querySelector(".current");
+  if(cur)cur.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+
+function calc(){
+  var typed=0,errors=0;
+  for(var i=0;i<pos;i++)typed+=list[i].length+1;
+  var elapsed=ROUND-left;
+  var wpm=elapsed>0?Math.round((typed/5)/(elapsed/60)):0;
+  var acc=totalChars?Math.max(0,Math.round((1-errorChars/totalChars)*100)):100;
+  wpmEl.textContent=wpm;accEl.textContent=acc+"%";
+  return {wpm:wpm,acc:acc,words:pos,errors:errorChars};
+}
+
+function tick(){
+  left--;
+  timeEl.textContent=left+"s";
+  if(left<=0)finish();
+  else calc();
+}
+
+function start(){
+  list=pickWords();pos=0;left=ROUND;started=false;done=false;totalChars=0;errorChars=0;
+  resultEl.classList.remove("show");
+  timeEl.textContent=ROUND+"s";wpmEl.textContent="0";accEl.textContent="100%";
+  inputEl.value="";inputEl.disabled=false;
+  startBtn.style.display="none";
+  drawWords();
+  inputEl.focus();
+}
+
+function finish(){
+  done=true;
+  if(timerId){clearInterval(timerId);timerId=null}
+  inputEl.disabled=true;
+  var r=calc();
+  var b=best();
+  var isBest=r.wpm>b;
+  if(isBest){localStorage.setItem(BEST_KEY,String(r.wpm));best()}
+  resTitle.textContent=isBest?"🏆 NOTUN BEST!":"⏱ Shesh!";
+  resWpm.textContent=r.wpm;resAcc.textContent=r.acc+"%";
+  resWords.textContent=r.words;resErr.textContent=r.errors;
+  resultEl.classList.add("show");
+}
+
+inputEl.addEventListener("input",function(){
+  if(done)return;
+  if(!started){
+    started=true;
+    timerId=setInterval(tick,1000);
+  }
+  var val=inputEl.value.trim();
+  var parts=val.split(/\s+/);
+  var curWord=parts[parts.length-1]||"";
+  var target=list[pos]||"";
+  var prevTyped=totalChars;
+  totalChars=val.length+pos*0;
+  if(!curWord)return;
+  if(curWord===target){
+    pos++;drawWords();
+    inputEl.value="";
+    totalChars=pos*(5);
+    errorChars+=0;
+    if(pos>=list.length)finish();
+    else calc();
+  }else if(target.indexOf(curWord)===0){
+    calc();
+  }else{
+    errorChars++;totalChars++;
+    calc();
+  }
+});
+inputEl.addEventListener("keydown",function(e){
+  if(e.key===" "){
+    var val=inputEl.value.trim();
+    if(val&&val!==list[pos]){
+      e.preventDefault();
+      pos++;drawWords();inputEl.value="";
+      errorChars++;totalChars+=val.length;
+      if(pos>=list.length)finish();else calc();
+    }
+  }
+});
+startBtn.addEventListener("click",start);
+againBtn.addEventListener("click",start);
+best();
+list=pickWords();drawWords();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mine Field</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px}
+.title{font-size:clamp(22px,5vw,30px);font-weight:800;background:linear-gradient(135deg,#7C4DFF,#00D5FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#00D5FF}
+.modes{display:flex;gap:8px}
+.m-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#A9B5CC;padding:8px 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.m-btn.active{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border-color:transparent}
+.board{display:grid;gap:3px;padding:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:14px;touch-action:manipulation}
+.cell{width:34px;height:34px;border-radius:7px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,#1c2752,#111834);color:transparent;font-size:15px;font-weight:800;cursor:pointer;display:grid;place-items:center;transition:transform .12s,background .15s}
+.cell:hover{transform:scale(1.06)}
+.cell.open{background:#0d1324;border-color:rgba(255,255,255,.06);cursor:default;transform:none}
+.cell.flag{color:#FF3D9A}
+.cell.mine{background:rgba(255,61,154,.25);border-color:#FF3D9A;color:#fff}
+.cell.n1{color:#00D5FF}.cell.n2{color:#20C997}.cell.n3{color:#FFB020}.cell.n4{color:#7C4DFF}
+.cell.n5,.cell.n6,.cell.n7,.cell.n8{color:#FF3D9A}
+.btn{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.hint{color:#A9B5CC;font-size:12.5px;text-align:center;max-width:420px}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#A9B5CC}
+@media(max-width:430px){.cell{width:30px;height:30px;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">Mine Field</div>
+  <div class="modes">
+    <button class="m-btn active" id="digMode">⛏ Dig</button>
+    <button class="m-btn" id="flagMode">🚩 Flag</button>
+  </div>
+  <div class="hud">
+    <div class="pill">Mines: <b id="mines">10</b></div>
+    <div class="pill">Time: <b id="time">0s</b></div>
+    <div class="pill">Best: <b id="best">—</b></div>
+  </div>
+  <div class="board" id="board"></div>
+  <button class="btn" id="restartBtn">🔄 Notun Khel</button>
+  <p class="hint">Dig mode-e tap kore khodao, Flag mode-e mine marked koro. Computer-e right-click-o flag kaj kore. Prothom click kokhono mine-e lage na.</p>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle"></h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">🔁 Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var N=9,MINES=10,BEST_KEY="gvp_mines_best";
+var boardEl=document.getElementById("board"),minesEl=document.getElementById("mines"),
+    timeEl=document.getElementById("time"),bestEl=document.getElementById("best"),
+    digBtn=document.getElementById("digMode"),flagBtn=document.getElementById("flagMode"),
+    ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var grid,minesLeft,started,done,timerId,seconds,mode="dig",flagsUsed;
+
+function bestTime(){var v=parseInt(localStorage.getItem(BEST_KEY)||"",10);bestEl.textContent=isNaN(v)?"—":v+"s";return v}
+
+function startTimer(){
+  if(timerId)return;
+  timerId=setInterval(function(){seconds++;timeEl.textContent=seconds+"s"},1000);
+}
+function stopTimer(){if(timerId){clearInterval(timerId);timerId=null}}
+
+function plant(exclude){
+  var set={},count=0,oldFlags={};
+  for(var i=0;i<grid.length;i++)if(grid[i].flag)oldFlags[i]=true;
+  while(count<MINES){
+    var i=Math.floor(Math.random()*N*N);
+    if(i===exclude||set[i])continue;
+    set[i]=true;count++;
+  }
+  for(var y=0;y<N;y++)for(var x=0;x<N;x++){
+    var idx=y*N+x;
+    grid[idx]={mine:!!set[idx],open:false,flag:!!oldFlags[idx],n:0};
+  }
+  for(var y2=0;y2<N;y2++)for(var x2=0;x2<N;x2++){
+    var g=grid[y2*N+x2];
+    if(g.mine)continue;
+    var n=0;
+    for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+      if(!dx&&!dy)continue;
+      var ny=y2+dy,nx=x2+dx;
+      if(ny>=0&&ny<N&&nx>=0&&nx<N&&grid[ny*N+nx].mine)n++;
+    }
+    g.n=n;
+  }
+}
+
+function neighborOpen(idx){
+  var y=Math.floor(idx/N),x=idx%N;
+  for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;
+    var ny=y+dy,nx=x+dx;
+    if(ny>=0&&ny<N&&nx>=0&&nx<N)reveal(ny*N+nx);
+  }
+}
+
+function reveal(idx){
+  var g=grid[idx];
+  if(!g||g.open||g.flag||done)return;
+  g.open=true;
+  if(g.n===0&&!g.mine)neighborOpen(idx);
+}
+
+function draw(){
+  var html="";
+  for(var i=0;i<N*N;i++){
+    var g=grid[i];
+    var cls="cell";
+    if(g.open){
+      cls+=" open";
+      if(g.mine)cls+=" mine";
+      else if(g.n>0)cls+=" n"+Math.min(g.n,8);
+    }else if(g.flag)cls+=" flag";
+    var txt=g.open?(g.mine?"💣":(g.n||"")):(g.flag?"🚩":"");
+    html+='<button class="'+cls+'" data-i="'+i+'">'+txt+"</button>";
+  }
+  boardEl.innerHTML=html;
+}
+
+function checkEnd(){
+  if(done)return;
+  var opened=0;
+  for(var i=0;i<N*N;i++)if(grid[i].open&&!grid[i].mine)opened++;
+  if(opened===N*N-MINES){
+    done=true;stopTimer();
+    var prev=bestTime();
+    var isBest=isNaN(prev)||seconds<prev;
+    if(isBest){localStorage.setItem(BEST_KEY,String(seconds));bestTime()}
+    ovTitle.textContent="🎉 Shundor!";
+    ovMsg.textContent="Shob mine safe kore felo! Time: "+seconds+"s"+(isBest?" — NOTUN BEST!":"");
+    ov.classList.add("show");
+  }
+}
+
+function boom(idx){
+  done=true;stopTimer();
+  for(var i=0;i<N*N;i++){if(grid[i].mine)grid[i].open=true}
+  draw();
+  ovTitle.textContent="💥 Dham!";
+  ovMsg.textContent="Mine felo! Ar ekbar try koro — prothom click-e mine thake na.";
+  ov.classList.add("show");
+}
+
+boardEl.addEventListener("click",function(e){
+  var b=e.target.closest(".cell");if(!b||done)return;
+  var idx=parseInt(b.dataset.i,10),g=grid[idx];
+  if(mode==="flag"&&!g.open){toggleFlag(idx);return}
+  if(g.flag)return;
+  if(!started){started=true;plant(idx);startTimer();
+    for(var i=0;i<N*N;i++){if(grid[i].mine)grid[i].open=false}
+  }
+  g=grid[idx];
+  if(g.mine){boom(idx);return}
+  reveal(idx);draw();checkEnd();
+});
+boardEl.addEventListener("contextmenu",function(e){
+  e.preventDefault();
+  var b=e.target.closest(".cell");if(!b||done)return;
+  toggleFlag(parseInt(b.dataset.i,10));
+});
+
+function toggleFlag(idx){
+  var g=grid[idx];if(!g||g.open)return;
+  g.flag=!g.flag;
+  flagsUsed+=g.flag?1:-1;
+  minesEl.textContent=MINES-flagsUsed;
+  draw();
+}
+
+function setMode(m){
+  mode=m;
+  digBtn.classList.toggle("active",m==="dig");
+  flagBtn.classList.toggle("active",m==="flag");
+}
+digBtn.addEventListener("click",function(){setMode("dig")});
+flagBtn.addEventListener("click",function(){setMode("flag")});
+
+function reset(){
+  stopTimer();
+  grid=[];for(var i=0;i<N*N;i++)grid.push({mine:false,open:false,flag:false,n:0});
+  started=false;done=false;seconds=0;flagsUsed=0;
+  timeEl.textContent="0s";minesEl.textContent=MINES;
+  ov.classList.remove("show");
+  setMode("dig");
+  draw();
+}
+document.getElementById("restartBtn").addEventListener("click",reset);
+document.getElementById("ovBtn").addEventListener("click",reset);
+bestTime();
+reset();
+})();
+</script>
+</body>
+</html>

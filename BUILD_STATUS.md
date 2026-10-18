@@ -91,3 +91,17 @@ cd "D:\Khair_Murafiq_Empire\Game Program\Game v1\Game_Version_1"
 npx serve .
 ```
 (Or any static server. Admin: /admin/index.html â†’ first visit asks you to set a password.)
+
+---
+
+## v2.1 Update (2026-10-17) — Motion system + 3 new games
+
+- **Vercel fix:** ercel.json added (outputDirectory: ".") — site live at https://khairplay.vercel.app/ (verified 200).
+- **Motion system:** hero floating orbs, scroll-reveal with stagger, animated game counter, button shine sweep, card hover glow/thumb zoom, gradient announcement animation, prefers-reduced-motion respected.
+- **3 new self-contained games** (original, same offline style as the 10):
+  - Mine Field (games/minesweeper.html) — first-click safe, flag mode, best time.
+  - Color Sequence (games/simon.html) — WebAudio tones, streak + best level.
+  - Typing Speed (games/typing.html) — 60s round, WPM/accuracy, best WPM.
+- **Total: 13 games** (10 original untouched + 3 new). Registered in games-data.js, 3 new SVG thumbnails, sitemap, admin best-scores list.
+- **Tests re-run:** 
+ode --check pass; static verify ALL PASSED; jsdom ALL DOM TESTS PASSED (33 route smoke 200).
