@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Panel — KhairPlay</title>
+  <title>Control Panel — PlayNova</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <meta name="theme-color" content="#080B16">
+  <link rel="icon" type="image/svg+xml" href="../public/brand/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -15,16 +19,31 @@
   <!-- ================= LOGIN ================= -->
   <div id="loginScreen" class="login-wrap">
     <div class="login-card">
-      <h1>⚡ KhairPlay Control Panel</h1>
+      <h1>⚡ PlayNova Control Panel</h1>
       <p>Site manage korar jonno login korun.</p>
+      <div class="demo-banner">
+        ⚠️ <b>DEMO / LOCAL MODE</b> — Eta ekta browser-based panel. Login ar password shudhu apnar device-e (localStorage/sessionStorage) thake, kono server-side security nai. Production site-e <b>hosting-level password protection</b> (jemon .htaccess / directory privacy) chara hole eta jeno keu-keu bole password vete parbe — tai nischit koren.
+      </div>
+      <form id="setupForm" class="hidden">
+        <h2 style="margin-top:16px;font-size:16px">🔑 Prothom Bar Password Set Korun</h2>
+        <p>Purano default credential (admin / REMOVED) amra sorie diyechi — sheta public repo-te chilo, tai insecure. Notun ekta nijer nam ar password boshan.</p>
+        <label class="f">User Name</label>
+        <input class="f" id="setupUser" autocomplete="username" required>
+        <label class="f">Password <span>(min 6 character)</span></label>
+        <input class="f" id="setupPass" type="password" autocomplete="new-password" minlength="6" required>
+        <label class="f">Password Abaar Likun</label>
+        <input class="f" id="setupPass2" type="password" autocomplete="new-password" minlength="6" required>
+        <button class="btn" type="submit">🔒 Password Save (Draft)</button>
+        <p id="setupHint" style="margin-top:12px;color:#FFB020;font-size:13px"></p>
+        <p class="mini-note">💡 Save korle draft-e thakbe. Site live korle Export/Import theke games-data.js download kore upload korun — tokhon password settings o live hobe. Hostinger/Netlify-e directory protection chara hole extra layer hisebe thik.</p>
+      </form>
       <form id="loginForm">
         <label class="f">User Name</label>
         <input class="f" id="loginUser" autocomplete="username" required>
         <label class="f">Password</label>
         <input class="f" id="loginPass" type="password" autocomplete="current-password" required>
         <button class="btn" type="submit">🔓 Login</button>
-        <p id="loginHint" style="margin-top:12px;color:#f59e0b;font-size:13px"></p>
-        <p style="margin-top:14px;font-size:12px;color:var(--muted)">Default: <b>admin</b> / <b>REMOVED</b> — Settings theke bodle nen. ⚠️ Eta basic protection — live site-e hole hosting-er extra password layer (jemon .htaccess) o jan.</p>
+        <p id="loginHint" style="margin-top:12px;color:#FFB020;font-size:13px"></p>
       </form>
       <p style="margin-top:16px"><a href="../index.html" style="color:var(--brand-2);font-size:13px">← Site-e fire jan</a></p>
     </div>
@@ -36,7 +55,7 @@
       <div class="container topbar-in">
         <div class="brand">
           <div class="ico">⚡</div>
-          <div>KhairPlay <small>Control Panel</small></div>
+          <div>PlayNova <small>Control Panel — Demo/Local Mode</small></div>
         </div>
         <div class="top-actions">
           <a class="btn small ghost" href="../index.html" target="_blank">🌐 Site Dekhun</a>
@@ -127,7 +146,7 @@
             </div>
             <div>
               <label class="f">Color (hex)</label>
-              <input class="f" id="gf_color" type="color" value="#6d5dfc" style="height:44px;padding:4px">
+              <input class="f" id="gf_color" type="color" value="#7C4DFF" style="height:44px;padding:4px">
             </div>
           </div>
           <label class="f">Tags <span>(comma diye alada — jemon: puzzle, brain, easy)</span></label>
@@ -258,7 +277,7 @@
           <h2>🚀 1. Site Live Korar Steps (Code Na Janle O)</h2>
           <ol>
             <li><b>Free hosting nichhen:</b> <a href="https://www.netlify.com/" target="_blank" rel="noopener" style="color:var(--brand-2)">Netlify</a>-e janun → Sign up (GitHub ba email diye) → "Add new site" → "Deploy manually" → pura <b>Game_Version_1</b> folder drag-drop korun. 1 minute-e site ready, URL paben.</li>
-            <li><b>Domain:</b> Netlify free subdomain diye shuru korun (jemon khairplay.netlify.app). Pore custom domain (jemon khairplay.com) Netlify thekei nite parben — dorkar nai ekhono.</li>
+            <li><b>Domain:</b> Netlify free subdomain diye shuru korun (jemon playnova.netlify.app). Pore custom domain (jemon playnova.com) Netlify thekei nite parben — dorkar nai ekhono.</li>
             <li><b>Folder structure intact rakhben:</b> index.html folder-r root-e, games/ pages/ css/ js/ admin/ — kichu rename/sorryben na.</li>
             <li><b>Update:</b> kono kichu bodlate Control Panel-e edit → Export → file manager-e replace. Done.</li>
           </ol>
@@ -300,13 +319,14 @@
         </div>
 
         <div class="card">
-          <h2>🔐 5. Security Note</h2>
-          <p>Ei panel-er password file-e ache (browser-e kaj kore) — mane technically jani tara HTML theke password dekhte pare. Tai:</p>
+          <h2>🔐 5. Security Note (Honestly)</h2>
+          <p>Ei panel ekta <b>demo/local-mode</b> tool — browser-ei kaj kore. Purano default password (<b>REMOVED</b>) public repo-te chilo — sheta keu-keu dekhte ba brute-force korte parete. Sejonno oi default credential ekhon sob file theke <b>sorie fela hoyeche</b> — prothom bar panel-e asle nijer password set korte hobe.</p>
           <ul>
-            <li>🔹 Panel link footer-e ache, kintu Google-e index hocche na (noindex) — search-e ashbe na.</li>
-            <li>🔹 Beshi risk nai — panel kintu kono data server-e rakhe na; shob kichhu apnar browser-e.</li>
-            <li>🔹 Jodi apni boro site korben, hosting-er <b>Password Protection</b> (Hostinger cPanel-e "Directory Privacy", Netlify-e password-protected deploy) chara parben extra layer hisebe.</li>
-            <li>🔹 Password regularly bodolen, strong rakhen.</li>
+            <li>🔹 Password ar login info shudhu apnar device-e (localStorage/sessionStorage) thake — server-e kichu jay na.</li>
+            <li>🔹 Kintu static site-e password file-ei thakbe — mane technically HTML/JS theke dekhte parbe. Eta "obscurity", puro security na.</li>
+            <li>🔹 Panel link footer-e ache, kintu noindex — Google-e ashbe na.</li>
+            <li>🔹 <b>Live site-e extra layer chara parben na:</b> hosting panel-e directory protection (Hostinger cPanel "Directory Privacy" / .htaccess auth, ba password-protected preview).</li>
+            <li>🔹 Strong, unique password boshan ar somoy somoye bodlen.</li>
           </ul>
         </div>
 

@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>All Games — Free Online Games | KhairPlay</title>
+  <title>All Games — Free Online Games | PlayNova</title>
   <meta name="description" content="Shob games ek jaygay — kids, educational ar challenge games, 100% free browser-e kheln.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <meta name="theme-color" content="#080B16">
+  <link rel="icon" type="image/svg+xml" href="../public/brand/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Poppins:wght@400;500;600;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -15,9 +19,12 @@
   <header class="site-header">
     <div class="container nav">
       <a class="logo" href="../index.html">
-        <span class="logo-icon">🎮</span>
-        <span data-site-name>KhairPlay</span>
+        <img class="logo-icon" src="../public/brand/playnova-icon.svg" alt="" width="40" height="40">
+        <span>Play<span class="logo-grad">Nova</span></span>
       </a>
+      <form class="nav-search" role="search" action="games.html" method="get">
+        <input type="search" name="q" placeholder="🔎 Game khujun..." aria-label="Search games">
+      </form>
       <button class="burger" aria-label="Menu">☰</button>
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
@@ -34,7 +41,8 @@
   <main>
     <section class="hero" style="padding-bottom:10px">
       <div class="container">
-        <h1 style="font-size:clamp(26px,4vw,40px)">🎮 Shob Games</h1>
+        <div class="crumbs"><a href="../index.html">Home</a><span class="sep">/</span><span class="here">All Games</span></div>
+        <h1 style="font-size:clamp(26px,4vw,40px)">Shob Games</h1>
         <p>Filter ba search kore apnar pochonder game khujun — <b id="gameCount">0</b> ti game ready ache.</p>
       </div>
     </section>
@@ -64,7 +72,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-about">
-          <a class="logo" href="../index.html"><span class="logo-icon">🎮</span><span data-site-name>KhairPlay</span></a>
+          <a class="footer-logo" href="../index.html"><img src="../public/brand/playnova-icon.svg" alt="" width="32" height="32"><span>Play<span class="logo-grad">Nova</span></span></a>
           <p>Free online gaming platform — kids, educational ar challenge games ek jaygay.</p>
         </div>
         <div>
@@ -93,7 +101,7 @@
           </ul>
         </div>
       </div>
-      <div class="footer-bottom">© <span data-year></span> <span data-site-name>KhairPlay</span>. All rights reserved.</div>
+      <div class="footer-bottom">© <span data-year></span> <span data-site-name>PlayNova</span>. All rights reserved.</div>
     </div>
   </footer>
 

@@ -85,11 +85,50 @@
     try { localStorage.setItem(FAIL_KEY, JSON.stringify({ n: n, until: until || 0 })); } catch (e) {}
   }
 
+  function hasCreds() {
+    return !!(cfg && cfg.adminUser && cfg.adminPass);
+  }
+
+  function showSetupIfNeeded() {
+    var needSetup = !hasCreds();
+    $("#setupForm").classList.toggle("hidden", !needSetup);
+    $("#loginForm").classList.toggle("hidden", needSetup);
+    return needSetup;
+  }
+
+  function initSetup() {
+    $("#setupForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var u = $("#setupUser").value.trim();
+      var p = $("#setupPass").value;
+      var p2 = $("#setupPass2").value;
+      var hint = $("#setupHint");
+      if (p.length < 6) {
+        hint.textContent = "Password komtute 6 character lagbe.";
+        return;
+      }
+      if (p !== p2) {
+        hint.textContent = "Duita password mile na — abar likhun.";
+        return;
+      }
+      cfg.adminUser = u;
+      cfg.adminPass = p;
+      saveDraft();
+      showSetupIfNeeded();
+      toast("🔑 Password draft-e save hoyeche. Ekhon login korun.");
+    });
+  }
+
   function initLogin() {
+    initSetup();
     var form = $("#loginForm");
     var hint = $("#loginHint");
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (!hasCreds()) {
+        hint.textContent = "⚠️ Prothom-e upore nijer password set korun.";
+        return;
+      }
       var f = getFails();
       if (f.until && Date.now() < f.until) {
         hint.textContent = "🔒 Khub beshi bhar noy — 30 second por abar cheshta korun.";
@@ -213,7 +252,7 @@
     $("#gf_category").value = g ? g.category : "kids";
     $("#gf_tags").value = g ? g.tags.join(", ") : "";
     $("#gf_icon").value = g ? g.icon : "🎮";
-    $("#gf_color").value = g ? g.color : "#6d5dfc";
+    $("#gf_color").value = g ? g.color : "#7C4DFF";
     $("#gf_desc").value = g ? g.description : "";
     $("#gf_players").value = g ? g.players : "1 Player";
     $("#gf_controls").value = g ? g.controls : "Click / Tap";
@@ -242,7 +281,7 @@
       category: $("#gf_category").value,
       tags: $("#gf_tags").value.split(",").map(function (t) { return t.trim(); }).filter(Boolean),
       icon: $("#gf_icon").value.trim() || "🎮",
-      color: $("#gf_color").value.trim() || "#6d5dfc",
+      color: $("#gf_color").value.trim() || "#7C4DFF",
       description: $("#gf_desc").value.trim(),
       players: $("#gf_players").value.trim() || "1 Player",
       controls: $("#gf_controls").value.trim() || "Click / Tap",
@@ -312,7 +351,7 @@
     $("#s_annOn").checked = !!cfg.announcementEnabled;
     $("#s_ann").value = cfg.announcement || "";
     $("#s_email").value = cfg.contactEmail || "";
-    $("#s_user").value = cfg.adminUser || "admin";
+    $("#s_user").value = cfg.adminUser || "";
     $("#s_pass").value = cfg.adminPass || "";
     updateAdStatus();
   }
@@ -333,7 +372,7 @@
     $("#s_client").addEventListener("input", updateAdStatus);
     $("#settingsForm").addEventListener("submit", function (e) {
       e.preventDefault();
-      cfg.name = $("#s_name").value.trim() || "KhairPlay";
+      cfg.name = $("#s_name").value.trim() || "PlayNova";
       cfg.tagline = $("#s_tagline").value.trim();
       cfg.adsenseClient = $("#s_client").value.trim();
       cfg.adsenseSlotTop = $("#s_slotTop").value.trim();
@@ -344,8 +383,8 @@
       cfg.announcementEnabled = $("#s_annOn").checked;
       cfg.announcement = $("#s_ann").value.trim();
       cfg.contactEmail = $("#s_email").value.trim();
-      cfg.adminUser = $("#s_user").value.trim() || "admin";
-      cfg.adminPass = $("#s_pass").value || "REMOVED";
+      cfg.adminUser = $("#s_user").value.trim() || cfg.adminUser || "";
+      cfg.adminPass = $("#s_pass").value || cfg.adminPass || "";
       saveDraft();
       renderDashboard();
       toast("✅ Settings draft-e save. Export file upload korle live hobe.");
@@ -367,7 +406,9 @@
     out += 'const CATEGORIES = ' + JSON.stringify(categories, null, 2) + ';\n\n';
     out += 'function getGamesByCategory(cat) {\n  return GAMES.filter(function (g) { return g.enabled && g.category === cat; });\n}\n\n';
     out += 'function getFeaturedGames() {\n  return GAMES.filter(function (g) { return g.enabled && g.featured; });\n}\n\n';
-    out += 'function getGameById(id) {\n  return GAMES.find(function (g) { return g.id === id; }) || null;\n}\n';
+    out += 'function getGameById(id) {\n  return GAMES.find(function (g) { return g.id === id; }) || null;\n}\n\n';
+    out += 'function getNewGames(limit) {\n  return GAMES\n    .filter(function (g) { return g.enabled; })\n    .slice()\n    .sort(function (a, b) { return String(b.addedAt || "").localeCompare(String(a.addedAt || "")); })\n    .slice(0, limit || 4);\n}\n\n';
+    out += 'function getEducationalPicks(limit) {\n  return getGamesByCategory("educational").slice(0, limit || 4);\n}\n';
     return out;
   }
 
@@ -478,7 +519,8 @@
     initGuide();
     $("#logoutBtn").addEventListener("click", logout);
     if (hadDraft) $("#draftBanner").classList.remove("hidden");
-    if (sessionOK()) showApp();
+    showSetupIfNeeded();
+    if (sessionOK() && hasCreds()) showApp();
   });
 
 })();

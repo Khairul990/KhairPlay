@@ -1,0 +1,44 @@
+/* PlayNova design tokens — single source of truth (from brand guide) */
+:root {
+  /* colors */
+  --bg: #080B16;
+  --raised: #0D1324;
+  --surface: #111B2F;
+  --border: #2A3855;
+  --text: #F7F9FF;
+  --text-2: #A9B5CC;
+  --violet: #7C4DFF;
+  --violet-soft: rgba(124, 77, 255, 0.16);
+  --cyan: #00D5FF;
+  --cyan-soft: rgba(0, 213, 255, 0.14);
+  --pink: #FF3D9A;
+  --success: #20C997;
+  --warning: #FFB020;
+  --danger: #FF647C;
+  --grad: linear-gradient(135deg, #C43DFF 0%, #7C4DFF 48%, #00B8FF 100%);
+  --grad-text: linear-gradient(90deg, #7C4DFF, #00D5FF);
+
+  /* legacy aliases (old classnames keep working) */
+  --bg-2: #0D1324;
+  --card: #111B2F;
+  --card-2: #182642;
+  --line: #2A3855;
+  --muted: #A9B5CC;
+  --brand: #7C4DFF;
+  --brand-2: #00D5FF;
+  --ok: #20C997;
+  --warn: #FFB020;
+  --bad: #FF647C;
+
+  /* typography */
+  --font-head: "Orbitron", "Segoe UI", system-ui, Arial, sans-serif;
+  --font-ui: "Poppins", "Segoe UI", system-ui, Arial, sans-serif;
+  --font-kids: "Nunito", "Poppins", "Segoe UI", system-ui, Arial, sans-serif;
+
+  /* shape */
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --glow: 0 0 0 1px rgba(124, 77, 255, 0.35), 0 10px 34px rgba(124, 77, 255, 0.25);
+  --max: 1200px;
+}

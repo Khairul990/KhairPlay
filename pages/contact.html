@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact — KhairPlay</title>
-  <meta name="description" content="KhairPlay-er shathe jogajog korun — suggestion, bug report ba business inquiry. Amra tokhon-i reply dite pari.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <title>Contact — PlayNova</title>
+  <meta name="description" content="PlayNova-er shathe jogajog korun — suggestion, bug report ba business inquiry. Amra tokhon-i reply dite pari.">
+  <link rel="icon" type="image/svg+xml" href="../public/brand/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Poppins:wght@400;500;600;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -15,9 +18,12 @@
   <header class="site-header">
     <div class="container nav">
       <a class="logo" href="../index.html">
-        <span class="logo-icon">🎮</span>
-        <span data-site-name>KhairPlay</span>
+        <img class="logo-icon" src="../public/brand/playnova-icon.svg" alt="" width="40" height="40">
+        <span>Play<span class="logo-grad">Nova</span></span>
       </a>
+      <form class="nav-search" role="search" action="games.html" method="get">
+        <input type="search" name="q" placeholder="🔎 Game khujun..." aria-label="Search games">
+      </form>
       <button class="burger" aria-label="Menu">☰</button>
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
@@ -45,7 +51,7 @@
           <div class="content-card">
             <h2>📩 Direct Email</h2>
             <p>Niche form-ti fill up korle apnar device-e email app khulbe, message ready hoye jabe — shudhu Send din.</p>
-            <p style="margin-top:12px"><b>Email:</b> <a id="contactEmail" href="#" style="color:var(--brand-2)">hello@khairplay.com</a></p>
+            <p style="margin-top:12px"><b>Email:</b> <a id="contactEmail" href="#" style="color:var(--cyan)">hello@playnova.example</a></p>
             <p style="margin-top:6px;font-size:13px">(Control panel theke apnar desired email set kore nen.)</p>
           </div>
 
@@ -79,7 +85,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-about">
-          <a class="logo" href="../index.html"><span class="logo-icon">🎮</span><span data-site-name>KhairPlay</span></a>
+          <a class="footer-logo" href="../index.html"><img src="../public/brand/playnova-icon.svg" alt="" width="32" height="32"><span>Play<span class="logo-grad">Nova</span></span></a>
           <p>Free online gaming platform — kids, educational ar challenge games ek jaygay.</p>
         </div>
         <div>
@@ -108,7 +114,7 @@
           </ul>
         </div>
       </div>
-      <div class="footer-bottom">© <span data-year></span> <span data-site-name>KhairPlay</span>. All rights reserved.</div>
+      <div class="footer-bottom">© <span data-year></span> <span data-site-name>PlayNova</span>. All rights reserved.</div>
     </div>
   </footer>
 
@@ -116,7 +122,7 @@
   <script src="../js/main.js"></script>
   <script>
     (function(){
-      var email=(SITE_CONFIG&&SITE_CONFIG.contactEmail)||"hello@khairplay.com";
+      var email=(SITE_CONFIG&&SITE_CONFIG.contactEmail)||"hello@playnova.example";
       var link=document.getElementById("contactEmail");
       link.textContent=email;
       link.href="mailto:"+email;
@@ -128,7 +134,7 @@
           alert("Nam ar message duitai likhun.");
           return;
         }
-        var subject=encodeURIComponent("[KhairPlay] Message from "+name);
+        var subject=encodeURIComponent("[PlayNova] Message from "+name);
         var body=encodeURIComponent(msg+"\n\n— "+name+(from?" ("+from+")":""));
         location.href="mailto:"+email+"?subject="+subject+"&body="+body;
       });

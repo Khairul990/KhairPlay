@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Memory Match thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111B2F"/><stop offset="1" stop-color="#0D1324"/></linearGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <rect x="86" y="46" width="92" height="130" rx="14" fill="#182642" stroke="#2A3855" stroke-width="3" transform="rotate(-8 132 111)"/>
+  <text x="132" y="128" text-anchor="middle" font-size="44" font-weight="800" fill="#7C4DFF" transform="rotate(-8 132 111)" font-family="Poppins, Arial, sans-serif">?</text>
+  <rect x="206" y="46" width="92" height="130" rx="14" fill="#182642" stroke="#20C997" stroke-width="3" transform="rotate(6 252 111)"/>
+  <text x="252" y="124" text-anchor="middle" font-size="48" transform="rotate(6 252 111)">🦊</text>
+</svg>

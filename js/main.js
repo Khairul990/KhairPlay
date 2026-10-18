@@ -4,6 +4,7 @@ const GVP = (function () {
 
   const CONFIG_KEY = "gvp_config";
   const GAME_LIMIT_KEY = "gvp_plays";
+  const RECENT_KEY = "gvp_recent";
 
   function getConfig() {
     try {
@@ -49,6 +50,16 @@ const GVP = (function () {
       const file = href.split("/").pop();
       if (file === path || (path === "" && file === "index.html")) a.classList.add("active");
     });
+
+    const navForm = document.querySelector(".nav-search");
+    if (navForm) {
+      navForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const input = navForm.querySelector("input");
+        const q = (input && input.value || "").trim();
+        location.href = basePath() + "pages/games.html" + (q ? "?q=" + encodeURIComponent(q) : "");
+      });
+    }
   }
 
   function initAnnouncement() {
@@ -72,8 +83,13 @@ const GVP = (function () {
   }
 
   function gameCardHTML(g) {
+    const thumb = g.thumb
+      ? '<img src="' + basePath() + g.thumb + '" alt="' + g.title + '" loading="lazy" width="400" height="225">'
+      : "";
+    const thumbClass = g.thumb ? "game-thumb" : "game-thumb emoji-only";
     return '<article class="game-card">' +
-      '<div class="game-thumb" style="background:linear-gradient(135deg,' + g.color + '33,' + g.color + '14)">' + g.icon + '</div>' +
+      '<div class="' + thumbClass + '" style="background:' + (g.thumb ? "var(--raised)" : "linear-gradient(135deg," + g.color + "33," + g.color + "14)") + '">' +
+      (thumb || g.icon) + '</div>' +
       '<div class="game-body">' +
       '<h3>' + g.title + '</h3>' +
       '<p>' + g.description + '</p>' +
@@ -97,17 +113,44 @@ const GVP = (function () {
     if (!el) return;
     el.innerHTML = CATEGORIES.map(function (c) {
       const count = getGamesByCategory(c.id).length;
-      return '<a class="cat-card" href="pages/games.html?cat=' + c.id + '">' +
+      return '<a class="cat-card" href="' + basePath() + 'pages/games.html?cat=' + c.id + '">' +
         '<span class="cat-count">' + count + ' GAMES</span>' +
         '<div class="cat-icon">' + c.icon + '</div>' +
         '<h3>' + c.title + '</h3><p>' + c.desc + '</p></a>';
     }).join("");
   }
 
+  function renderCategoryShortcuts(targetId) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    const pills = CATEGORIES.map(function (c) {
+      return '<a class="cat-pill" href="' + basePath() + 'pages/games.html?cat=' + c.id + '">' + c.icon + ' ' + c.title + '</a>';
+    });
+    pills.push('<a class="cat-pill" href="' + basePath() + 'pages/games.html">🕹️ All Games</a>');
+    el.innerHTML = pills.join("");
+  }
+
+  function getRecentGames() {
+    try {
+      const ids = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+      return ids.map(getGameById).filter(function (g) { return g && g.enabled; }).slice(0, 4);
+    } catch (e) { return []; }
+  }
+
   function initHome() {
     renderCategories("catGrid");
+    renderCategoryShortcuts("catShortcuts");
     renderGames("featuredGrid", getFeaturedGames().slice(0, 8));
-    renderGames("latestGrid", GAMES.filter(function (g) { return g.enabled; }).slice(0, 4));
+    renderGames("newGrid", getNewGames(4));
+    renderGames("eduGrid", getEducationalPicks(4));
+    const recent = getRecentGames();
+    const recentSection = document.getElementById("recentSection");
+    if (recentSection) {
+      if (recent.length) {
+        renderGames("recentGrid", recent);
+        recentSection.hidden = false;
+      }
+    }
     const stat = document.getElementById("statGames");
     if (stat) stat.textContent = GAMES.filter(function (g) { return g.enabled; }).length;
   }
@@ -118,6 +161,8 @@ const GVP = (function () {
     const params = new URLSearchParams(location.search);
     let activeCat = params.get("cat") || "all";
     const search = document.getElementById("gameSearch");
+    const initialQ = params.get("q") || "";
+    if (search && initialQ) search.value = initialQ;
 
     document.querySelectorAll(".filter-btn").forEach(function (b) {
       if (b.dataset.cat === activeCat) b.classList.add("active");
@@ -161,7 +206,11 @@ const GVP = (function () {
     if (metaDesc) metaDesc.setAttribute("content", g.description + " — " + SITE_CONFIG.name + " theke free online kheln.");
     injectGameSchema(g);
     const t = document.getElementById("gameTitle");
-    if (t) t.innerHTML = g.icon + " " + g.title;
+    if (t) t.textContent = g.title;
+    const icon = document.getElementById("gameIcon");
+    if (icon) icon.textContent = g.icon;
+    const crumb = document.getElementById("crumbGame");
+    if (crumb) crumb.textContent = g.title;
     const d = document.getElementById("gameDesc");
     if (d) d.textContent = g.description;
     const ctrl = document.getElementById("gameControls");
@@ -309,6 +358,15 @@ const GVP = (function () {
       data.last = now;
       localStorage.setItem(GAME_LIMIT_KEY, JSON.stringify(data));
     } catch (e) {}
+    try {
+      const id = document.getElementById("gamePlayArea") && document.getElementById("gamePlayArea").dataset.game;
+      if (id) {
+        let ids = [];
+        try { ids = JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) {}
+        ids = [id].concat(ids.filter(function (x) { return x !== id; })).slice(0, 8);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(ids));
+      }
+    } catch (e) {}
   }
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -327,6 +385,7 @@ const GVP = (function () {
     saveConfig: saveConfig,
     toast: toast,
     renderGames: renderGames,
-    trackPlay: trackPlay
+    trackPlay: trackPlay,
+    basePath: basePath
   };
 })();

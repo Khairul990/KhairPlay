@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play Game | KhairPlay</title>
+  <title>Play Game | PlayNova</title>
   <meta name="description" content="Game kheln ekhon-e — free, fast ar smooth.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <meta name="theme-color" content="#080B16">
+  <link rel="icon" type="image/svg+xml" href="../public/brand/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Poppins:wght@400;500;600;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -15,9 +19,12 @@
   <header class="site-header">
     <div class="container nav">
       <a class="logo" href="../index.html">
-        <span class="logo-icon">🎮</span>
-        <span data-site-name>KhairPlay</span>
+        <img class="logo-icon" src="../public/brand/playnova-icon.svg" alt="" width="40" height="40">
+        <span>Play<span class="logo-grad">Nova</span></span>
       </a>
+      <form class="nav-search" role="search" action="games.html" method="get">
+        <input type="search" name="q" placeholder="🔎 Game khujun..." aria-label="Search games">
+      </form>
       <button class="burger" aria-label="Menu">☰</button>
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
@@ -33,8 +40,13 @@
 
   <main class="play-wrap">
     <div class="container">
+      <div class="crumbs">
+        <a href="../index.html">Home</a><span class="sep">/</span>
+        <a href="games.html">Games</a><span class="sep">/</span>
+        <span class="here" id="crumbGame">Game</span>
+      </div>
       <div class="play-head">
-        <h1 id="gameTitle">🎮 Game</h1>
+        <h1><span id="gameIcon" aria-hidden="true">🎮</span> <span id="gameTitle">Game</span></h1>
         <a class="back-link" href="games.html">← Pichone</a>
       </div>
 
@@ -51,7 +63,7 @@
         </div>
       </div>
 
-      <p id="gameDesc" style="color:var(--muted);max-width:960px;margin:14px auto 0;font-size:14px"></p>
+      <p id="gameDesc" style="color:var(--text-2);max-width:960px;margin:14px auto 0;font-size:14px"></p>
 
       <div class="ad-slot ad-responsive ad-bottom" style="max-width:960px">
         <div class="ad-label">Advertisement</div>
@@ -59,7 +71,7 @@
       </div>
 
       <div class="section-head" style="margin-top:10px">
-        <h2>➡️ Aro Games</h2>
+        <h2><span class="accent"></span>➡️ Aro Games</h2>
         <a href="games.html">Shob dekhun →</a>
       </div>
       <div class="game-grid" id="relatedGrid"></div>
@@ -69,7 +81,7 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-bottom" style="border-top:0;margin-top:0">
-        © <span data-year></span> <span data-site-name>KhairPlay</span>. All rights reserved.
+        © <span data-year></span> <span data-site-name>PlayNova</span>. All rights reserved.
       </div>
     </div>
   </footer>

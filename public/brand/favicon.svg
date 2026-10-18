@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="pnFavTitle">
+  <title id="pnFavTitle">PlayNova favicon</title>
+  <defs>
+    <linearGradient id="pnFav" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C43DFF"/>
+      <stop offset="0.48" stop-color="#7C4DFF"/>
+      <stop offset="1" stop-color="#00B8FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0D1324"/>
+  <path d="M14 28c0-6 4-10 10-10h16c6 0 10 4 10 10v6c0 9-4 15-9 15-4 0-6-4-9-4h-1c-3 0-5 4-9 4-5 0-9-6-9-15v-6z" fill="url(#pnFav)"/>
+  <rect x="21" y="28" width="10" height="3.5" rx="1.75" fill="#0D1324"/>
+  <rect x="24.25" y="24.75" width="3.5" height="10" rx="1.75" fill="#0D1324"/>
+  <circle cx="40" cy="27.5" r="2.3" fill="#0D1324"/>
+  <circle cx="44.5" cy="32" r="2.3" fill="#0D1324"/>
+  <path d="M49 10l1.9 4.6L55.5 16.5l-4.6 1.9L49 23l-1.9-4.6L42.5 16.5l4.6-1.9L49 10z" fill="#00D5FF"/>
+</svg>

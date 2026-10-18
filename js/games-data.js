@@ -1,20 +1,20 @@
 "use strict";
 
 const SITE_CONFIG = {
-  name: "KhairPlay",
-  tagline: "Fun Games for Everyone",
-  version: "1.1.0",
+  name: "PlayNova",
+  tagline: "PLAY • LEARN • EXPLORE",
+  version: "2.0.0-playnova",
   adsenseClient: "ca-pub-XXXXXXXXXXXXXXXX",
   adsenseSlotTop: "",
   adsenseSlotMid: "",
   adsenseSlotBottom: "",
-  adsEnabled: true,
+  adsEnabled: false,
   minSecondsBetweenAds: 20,
   announcement: "",
   announcementEnabled: false,
-  contactEmail: "hello@khairplay.com",
-  adminUser: "admin",
-  adminPass: "REMOVED"
+  contactEmail: "hello@playnova.example",
+  adminUser: "",
+  adminPass: ""
 };
 
 const GAMES = [
@@ -24,7 +24,9 @@ const GAMES = [
     category: "kids",
     tags: ["classic", "arcade", "easy"],
     icon: "🐍",
-    color: "#22c55e",
+    color: "#20C997",
+    thumb: "public/brand/games/thumb-snake.svg",
+    addedAt: "2026-09-01",
     description: "Classic snake game — kheye kheye boro hoye ja, deewar laagbe na!",
     players: "1 Player",
     controls: "Arrow keys / Swipe",
@@ -38,7 +40,9 @@ const GAMES = [
     category: "kids",
     tags: ["puzzle", "2-player", "quick"],
     icon: "⭕",
-    color: "#3b82f6",
+    color: "#00D5FF",
+    thumb: "public/brand/games/thumb-tic-tac-toe.svg",
+    addedAt: "2026-09-01",
     description: "Dui jon mile X-O kheln — 3-tai nirdishto line banan jeetar jonno.",
     players: "1-2 Players",
     controls: "Click / Tap",
@@ -52,7 +56,9 @@ const GAMES = [
     category: "kids",
     tags: ["memory", "cards", "brain"],
     icon: "🃏",
-    color: "#a855f7",
+    color: "#7C4DFF",
+    thumb: "public/brand/games/thumb-memory.svg",
+    addedAt: "2026-09-01",
     description: "Card ghurai dekhun, match kore din — smruti shokti barbe!",
     players: "1 Player",
     controls: "Click / Tap",
@@ -66,7 +72,9 @@ const GAMES = [
     category: "educational",
     tags: ["math", "quiz", "learning"],
     icon: "🧮",
-    color: "#f59e0b",
+    color: "#FFB020",
+    thumb: "public/brand/games/thumb-math-quiz.svg",
+    addedAt: "2026-09-01",
     description: "Hishab-er porikkha! Plus, minus, gun-gunita te score banaun.",
     players: "1 Player",
     controls: "Click / Tap",
@@ -80,7 +88,9 @@ const GAMES = [
     category: "educational",
     tags: ["english", "vocabulary", "quiz"],
     icon: "📚",
-    color: "#06b6d4",
+    color: "#00D5FF",
+    thumb: "public/brand/games/thumb-word-builder.svg",
+    addedAt: "2026-09-01",
     description: "Ekta chhinno diye shuru — shobd ta thik mune din, boi barbe!",
     players: "1 Player",
     controls: "Keyboard",
@@ -94,7 +104,9 @@ const GAMES = [
     category: "educational",
     tags: ["geography", "quiz", "general knowledge"],
     icon: "🌍",
-    color: "#10b981",
+    color: "#20C997",
+    thumb: "public/brand/games/thumb-flag-quiz.svg",
+    addedAt: "2026-09-01",
     description: "Jacchaar desher flag chine nin — bishwer gyan barbe!",
     players: "1 Player",
     controls: "Click / Tap",
@@ -108,7 +120,9 @@ const GAMES = [
     category: "adult",
     tags: ["puzzle", "numbers", "strategy"],
     icon: "🔢",
-    color: "#ef4444",
+    color: "#FF647C",
+    thumb: "public/brand/games/thumb-2048.svg",
+    addedAt: "2026-09-01",
     description: "Number guloke soriye 2048 banan — chhoto shuru, boro sochon.",
     players: "1 Player",
     controls: "Arrow keys / Swipe",
@@ -122,7 +136,9 @@ const GAMES = [
     category: "kids",
     tags: ["arcade", "reflex", "fun"],
     icon: "🐦",
-    color: "#f97316",
+    color: "#FFB020",
+    thumb: "public/brand/games/thumb-flappy.svg",
+    addedAt: "2026-09-01",
     description: "Touch kore udan — obstacle par kore high score toiri korun!",
     players: "1 Player",
     controls: "Click / Space / Tap",
@@ -136,7 +152,9 @@ const GAMES = [
     category: "adult",
     tags: ["arcade", "classic", "action"],
     icon: "🧱",
-    color: "#ec4899",
+    color: "#FF3D9A",
+    thumb: "public/brand/games/thumb-breakout.svg",
+    addedAt: "2026-09-01",
     description: "Ball diye shob brick bhenge din — power-up niye aro shoktishali hon.",
     players: "1 Player",
     controls: "Mouse / Arrow keys",
@@ -150,8 +168,10 @@ const GAMES = [
     category: "adult",
     tags: ["speed", "reflex", "challenge"],
     icon: "⚡",
-    color: "#eab308",
-    description: "Koto druto react korte paren? Probar koren — chokh ar dimag ekshathe!",
+    color: "#FFB020",
+    thumb: "public/brand/games/thumb-reaction.svg",
+    addedAt: "2026-09-01",
+    description: "Koto druto react korte paran? Probar koren — chokh ar dimag ekshathe!",
     players: "1 Player",
     controls: "Click / Tap",
     iframe: "games/reaction.html",
@@ -161,9 +181,9 @@ const GAMES = [
 ];
 
 const CATEGORIES = [
-  { id: "kids", title: "Kids Games", icon: "🧸", color: "#3b82f6", desc: "Shishuder jonno surakshit, rangin ar anoondokor khel" },
-  { id: "educational", title: "Educational Games", icon: "🎓", color: "#f59e0b", desc: "Khelar shathe shikhun — gonit, bhasha ar biswer gyan" },
-  { id: "adult", title: "Challenge Games", icon: "🎯", color: "#ef4444", desc: "Dimag ar chokher porikkha — strategy ar speed" }
+  { id: "kids", title: "Kids Games", icon: "🧸", color: "#00D5FF", desc: "Shishuder jonno surakshit, rangin ar anoondokor khel" },
+  { id: "educational", title: "Educational Games", icon: "🎓", color: "#FFB020", desc: "Khelar shathe shikhun — gonit, bhasha ar biswer gyan" },
+  { id: "adult", title: "Challenge Games", icon: "🎯", color: "#FF3D9A", desc: "Dimag ar chokher porikkha — strategy ar speed" }
 ];
 
 function getGamesByCategory(cat) {
@@ -176,4 +196,16 @@ function getFeaturedGames() {
 
 function getGameById(id) {
   return GAMES.find(function (g) { return g.id === id; }) || null;
+}
+
+function getNewGames(limit) {
+  return GAMES
+    .filter(function (g) { return g.enabled; })
+    .slice()
+    .sort(function (a, b) { return String(b.addedAt || "").localeCompare(String(a.addedAt || "")); })
+    .slice(0, limit || 4);
+}
+
+function getEducationalPicks(limit) {
+  return getGamesByCategory("educational").slice(0, limit || 4);
 }

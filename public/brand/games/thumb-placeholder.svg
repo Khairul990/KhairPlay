@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Game thumbnail placeholder">
+  <rect width="400" height="225" fill="#111B2F"/>
+  <rect x="1" y="1" width="398" height="223" rx="0" fill="none" stroke="#2A3855" stroke-width="2"/>
+  <path d="M170 96c0-8 6-14 14-14h32c8 0 14 6 14 14v8c0 12-6 20-12 20-5 0-8-5-11-5h-1c-3 0-6 5-11 5-7 0-12-8-12-20v-8z" fill="#2A3855" transform="translate(0,8)"/>
+  <text x="200" y="172" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="16" font-weight="600" fill="#A9B5CC">PlayNova</text>
+</svg>

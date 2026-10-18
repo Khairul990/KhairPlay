@@ -1,24 +1,24 @@
 :root {
-  --bg: #0b1020;
-  --bg-2: #111834;
-  --card: #161f42;
-  --card-2: #1c2752;
-  --line: rgba(255, 255, 255, 0.08);
-  --text: #eef2ff;
-  --muted: #9aa7d0;
-  --brand: #6d5dfc;
-  --brand-2: #22d3ee;
-  --ok: #22c55e;
-  --warn: #f59e0b;
-  --bad: #ef4444;
+  --bg: #080B16;
+  --bg-2: #0D1324;
+  --card: #111B2F;
+  --card-2: #182642;
+  --line: #2A3855;
+  --text: #F7F9FF;
+  --muted: #A9B5CC;
+  --brand: #7C4DFF;
+  --brand-2: #00D5FF;
+  --ok: #20C997;
+  --warn: #FFB020;
+  --bad: #FF647C;
   --radius: 14px;
   --max: 1200px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-  background: radial-gradient(1100px 500px at 12% -10%, #1b2a6b 0%, transparent 55%),
-              radial-gradient(900px 480px at 100% 0%, #2a1359 0%, transparent 50%),
+  font-family: "Poppins", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  background: radial-gradient(1100px 500px at 12% -10%, rgba(124,77,255,0.16) 0%, transparent 55%),
+              radial-gradient(900px 480px at 100% 0%, rgba(0,213,255,0.10) 0%, transparent 50%),
               var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -151,3 +151,15 @@ textarea.f { resize: vertical; min-height: 90px; }
 .check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 14px; color: var(--muted); }
 .check input { margin-top: 3px; accent-color: var(--brand); width: 17px; height: 17px; }
 .mini-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+.demo-banner {
+  background: rgba(255, 176, 32, 0.1);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  color: #FFD48A;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+.demo-banner b { color: #FFE7B3; }

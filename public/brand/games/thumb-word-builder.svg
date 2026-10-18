@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Word Builder thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111B2F"/><stop offset="1" stop-color="#0D1324"/></linearGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <g font-family="Orbitron, Arial, sans-serif" font-weight="800" font-size="36" text-anchor="middle">
+    <rect x="66" y="74" width="58" height="66" rx="12" fill="#182642" stroke="#7C4DFF" stroke-width="3"/><text x="95" y="118" fill="#F7F9FF">P</text>
+    <rect x="132" y="74" width="58" height="66" rx="12" fill="#182642" stroke="#7C4DFF" stroke-width="3"/><text x="161" y="118" fill="#F7F9FF">L</text>
+    <rect x="198" y="74" width="58" height="66" rx="12" fill="#182642" stroke="#00D5FF" stroke-width="3"/><text x="227" y="118" fill="#00D5FF">A</text>
+    <rect x="264" y="74" width="58" height="66" rx="12" fill="#182642" stroke="#2A3855" stroke-width="3"/><text x="293" y="118" fill="#A9B5CC">Y</text>
+  </g>
+  <text x="200" y="182" text-anchor="middle" font-size="18" font-weight="600" fill="#A9B5CC" font-family="Poppins, Arial, sans-serif">build the word</text>
+</svg>

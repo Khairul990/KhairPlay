@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Flappy Bird style game thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0D1324"/><stop offset="1" stop-color="#182642"/></linearGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <rect x="250" y="0" width="52" height="78" rx="6" fill="#20C997"/>
+  <rect x="242" y="70" width="68" height="16" rx="5" fill="#18A87F"/>
+  <rect x="250" y="150" width="52" height="75" rx="6" fill="#20C997"/>
+  <rect x="242" y="142" width="68" height="16" rx="5" fill="#18A87F"/>
+  <ellipse cx="150" cy="112" rx="30" ry="24" fill="#FFB020"/>
+  <circle cx="162" cy="104" r="7" fill="#F7F9FF"/><circle cx="164" cy="104" r="3" fill="#0D1324"/>
+  <path d="M178 112l18 6-18 8z" fill="#FF647C"/>
+  <path d="M132 116c-10 2-16 8-14 14 8-2 14-6 18-12z" fill="#FFB020"/>
+</svg>

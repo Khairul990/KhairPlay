@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Tic Tac Toe thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0D1324"/><stop offset="1" stop-color="#182642"/></linearGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <g stroke="#2A3855" stroke-width="8" stroke-linecap="round">
+    <path d="M170 40v145M230 40v145M110 88h180M110 140h180"/>
+  </g>
+  <g stroke="#00D5FF" stroke-width="10" stroke-linecap="round">
+    <path d="M128 48l28 28M156 48l-28 28M128 100l28 28M156 100l-28 28"/>
+  </g>
+  <circle cx="260" cy="114" r="22" fill="none" stroke="#FF3D9A" stroke-width="10"/>
+  <circle cx="200" cy="168" r="18" fill="none" stroke="#FF3D9A" stroke-width="9"/>
+</svg>
