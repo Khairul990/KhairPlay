@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hangman</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:14px}
+.title{font-size:clamp(22px,5vw,30px);font-weight:800;background:linear-gradient(135deg,#7C4DFF,#00D5FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#00D5FF}
+.pill b.bad{color:#FF3D9A}
+.stage{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:center}
+.gallows{width:170px;height:200px}
+.gallows *{stroke:#2A3855;stroke-width:5;fill:none;stroke-linecap:round}
+.gallows .on{stroke:#FF3D9A}
+.gallows .head.on{fill:#FF3D9A;stroke:#FF3D9A}
+.word{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:52px}
+.letter{min-width:34px;border-bottom:3px solid #7C4DFF;font-size:28px;font-weight:800;text-align:center;padding:0 4px;text-transform:uppercase;transition:.25s}
+.letter.shown{color:#00D5FF;border-color:#00D5FF}
+.letter.wrong{color:#FF3D9A;border-color:#FF3D9A;text-decoration:line-through}
+.hint-word{color:#A9B5CC;font-size:13.5px;font-style:italic;min-height:20px;text-align:center}
+.keys{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:560px}
+.key{width:40px;height:42px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#eef2ff;font-weight:800;font-size:15px;cursor:pointer;transition:.15s}
+.key:hover:not(:disabled){transform:translateY(-2px);border-color:#7C4DFF}
+.key:disabled{opacity:.28;cursor:default}
+.key.good{background:rgba(32,201,151,.25);border-color:#20C997;color:#20C997}
+.key.bad{background:rgba(255,61,154,.18);border-color:#FF3D9A;color:#FF3D9A}
+.btn{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border:0;padding:11px 24px;border-radius:11px;font-weight:800;font-size:14px;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#A9B5CC;max-width:340px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">Hangman</div>
+  <div class="hud">
+    <div class="pill">Word: <b id="round">1</b></div>
+    <div class="pill">Streak: <b id="streak">0</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+  </div>
+  <div class="stage">
+    <svg class="gallows" viewBox="0 0 170 200" aria-hidden="true">
+      <path d="M20 190 H150"/>
+      <path d="M45 190 V20"/>
+      <path d="M45 20 H120"/>
+      <path d="M120 20 V50"/>
+      <circle class="head" id="p1" cx="120" cy="68" r="17"/>
+      <path class="on-x" id="p2" d="M120 85 V130"/>
+      <path class="on-x" id="p3" d="M120 100 L95 118"/>
+      <path class="on-x" id="p4" d="M120 100 L145 118"/>
+      <path class="on-x" id="p5" d="M120 130 L98 160"/>
+      <path class="on-x" id="p6" d="M120 130 L142 160"/>
+    </svg>
+    <div>
+      <div class="word" id="word"></div>
+      <p class="hint-word" id="hint"></p>
+    </div>
+  </div>
+  <div class="keys" id="keys"></div>
+  <button class="btn" id="nextBtn">Notun Shabdho ▶</button>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle"></h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Aage Badho</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var BEST_KEY="gvp_hangman_best";
+var WORDS=[
+  ["elephant","Boro kaaku, lomba trunk wala prani"],
+  ["banana","Sishder priyo holud fol"],
+  ["library","Boi thakle onek boi thake ei jaygay"],
+  ["guitar","Chhoy tar wala bajano instrument"],
+  ["volcano","Uthle gorom lava ber kore"],
+  ["butterfly","Rangin pakhir nose e sundor chokh"],
+  ["computer","Ei game ti apni ekter maddhome khelchen"],
+  ["rainbow","Brishti-r por akash e dekha jay 7 rong"],
+  ["penguin","Himobahite thaka pakhi, udte pare na"],
+  ["sandwich","Dui ruta er majkhan e pur"],
+  ["hospital","Bimar manush er chikitsa hoy ei jaygay"],
+  ["dinosaur","Age amra chileri, ekhon nosto"],
+  ["birthday","Proti bochor ekbar manano jay"],
+  ["mountain","Khub uncha, churi wala prakritik gothon"],
+  ["chocolate","Mishti khabar, cacao theke toiri"],
+  ["airplane","Akash e uday, pakha chara"],
+  ["keyboard","Letter thake, type korte pare"],
+  ["television","Video dekhar upokoron"],
+  ["pineapple","Kantor baire holud, bhitore teto-mitha"],
+  ["whale","Jal-e thaka sob cheye boro prani"]
+];
+var MAX_WRONG=6;
+var bestEl=document.getElementById("best"),streakEl=document.getElementById("streak"),
+    roundEl=document.getElementById("round"),wordEl=document.getElementById("word"),
+    hintEl=document.getElementById("hint"),keysEl=document.getElementById("keys"),
+    nextBtn=document.getElementById("nextBtn"),ov=document.getElementById("ov"),
+    ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var word,guessed,wrong,streak=0,round=1,done=false,pool=WORDS.slice();
+
+function best(){var v=parseInt(localStorage.getItem(BEST_KEY)||"0",10);bestEl.textContent=v;return v}
+
+function drawGallows(){
+  for(var i=1;i<=6;i++){
+    var el=document.getElementById("p"+i);
+    if(!el)continue;
+    if(i===1)el.classList.toggle("on",wrong>=1);
+    else el.classList.toggle("on",wrong>=i);
+  }
+}
+
+function drawWord(){
+  var html="";
+  for(var i=0;i<word.length;i++){
+    var ch=word[i];
+    var show=guessed.indexOf(ch)!==-1||done;
+    var isWrong=guessed.indexOf(ch)!==-1&&!show;
+    html+='<span class="letter'+(show&&!isWrong?" shown":"")+'">'+(show?ch:"")+"</span>";
+  }
+  wordEl.innerHTML=html;
+}
+
+function drawKeys(){
+  var html="";
+  for(var i=0;i<26;i++){
+    var ch=String.fromCharCode(97+i);
+    var cls="key";
+    if(guessed.indexOf(ch)!==-1)cls+=word.indexOf(ch)!==-1?" good":" bad";
+    html+='<button class="'+cls+'" data-c="'+ch+'"'+(guessed.indexOf(ch)!==-1?" disabled":"")+">"+ch.toUpperCase()+"</button>";
+  }
+  keysEl.innerHTML=html;
+}
+
+function guess(ch){
+  if(done||guessed.indexOf(ch)!==-1)return;
+  guessed.push(ch);
+  if(word.indexOf(ch)===-1){
+    wrong++;
+    if(wrong>=MAX_WRONG){
+      done=true;
+      streak=0;streakEl.textContent="0";
+      ovTitle.textContent="😵 Chad galo!";
+      ovMsg.textContent="Shabdho chilo: "+word.toUpperCase()+". Ar ekbar!";
+      ov.classList.add("show");
+    }
+  }
+  var won=word.split("").every(function(c){return c===" "||guessed.indexOf(c)!==-1});
+  if(won&&!done){
+    done=true;
+    streak++;streakEl.textContent=streak;
+    var b=best();
+    if(streak>b){localStorage.setItem(BEST_KEY,String(streak));best()}
+    ovTitle.textContent="🎉 Shundor!";
+    ovMsg.textContent=(streak>b?"NOTUN BEST! ":"")+"Tara "+wrong+" bhul e shabdho bujhe felchen. Streak: "+streak;
+    ov.classList.add("show");
+  }
+  drawWord();drawKeys();drawGallows();
+}
+
+function pick(){
+  if(!pool.length)pool=WORDS.slice();
+  var w=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+  return {word:w[0],hint:w[1]};
+}
+
+function start(){
+  var p=pick();
+  word=p.word;hintEl.textContent="Hint: "+p.hint;
+  guessed=[];wrong=0;done=false;
+  roundEl.textContent=round;
+  ov.classList.remove("show");
+  drawWord();drawKeys();drawGallows();
+}
+
+keysEl.addEventListener("click",function(e){
+  var b=e.target.closest(".key");
+  if(b&&!b.disabled)guess(b.dataset.c);
+});
+document.addEventListener("keydown",function(e){
+  if(/^[a-z]$/i.test(e.key))guess(e.key.toLowerCase());
+});
+nextBtn.addEventListener("click",function(){round++;start()});
+ovBtn.addEventListener("click",function(){round++;start()});
+best();streakEl.textContent="0";start();
+})();
+</script>
+</body>
+</html>

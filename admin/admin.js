@@ -207,7 +207,11 @@
       ["⚡ Reaction Rush", "gvp_reaction_best"],
       ["💣 Mine Field", "gvp_mines_best"],
       ["🎨 Color Sequence", "gvp_simon_best"],
-      ["⌨️ Typing Speed", "gvp_typing_best"]
+      ["⌨️ Typing Speed", "gvp_typing_best"],
+      ["🧊 Block Fall", "gvp_block_best"],
+      ["🔡 Hangman", "gvp_hangman_best"],
+      ["🔴 Connect Four", "gvp_c4_best"],
+      ["🔨 Whack-a-Mole", "gvp_whack_best"]
     ];
     var html = "";
     var any = false;

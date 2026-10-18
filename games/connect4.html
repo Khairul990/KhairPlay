@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect Four</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px}
+.title{font-size:clamp(22px,5vw,30px);font-weight:800;background:linear-gradient(135deg,#7C4DFF,#00D5FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.modes{display:flex;gap:8px}
+.m-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#A9B5CC;padding:8px 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.m-btn.active{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border-color:transparent}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#00D5FF}
+.turn-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.board{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;padding:14px;background:linear-gradient(160deg,#1a2a55,#101c3a);border:2px solid #2A3855;border-radius:16px}
+.col{display:flex;flex-direction:column;gap:9px;cursor:pointer;border:0;background:none;padding:0}
+.col:disabled{cursor:default}
+.cellw{width:clamp(34px,10vw,52px);height:clamp(34px,10vw,52px);border-radius:50%;background:#0a1024;box-shadow:inset 0 3px 8px rgba(0,0,0,.55);transition:background .15s}
+.col:hover .cellw.empty:first-child{background:#152042}
+.disc{width:100%;height:100%;border-radius:50%;transform:scale(0);animation:drop .3s cubic-bezier(.34,1.56,.64,1) forwards}
+.disc.p1{background:radial-gradient(circle at 35% 30%,#ff6b8a,#e11d48)}
+.disc.p2{background:radial-gradient(circle at 35% 30%,#ffd166,#eab308)}
+@keyframes drop{to{transform:scale(1)}}
+.cellw.win{box-shadow:0 0 0 3px #20C997,0 0 18px rgba(32,201,151,.7)}
+.status{min-height:26px;font-weight:700;font-size:15px}
+.btn{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.hint{color:#A9B5CC;font-size:12.5px;text-align:center;max-width:420px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">Connect Four</div>
+  <div class="modes">
+    <button class="m-btn active" id="aiMode">🤖 vs AI</button>
+    <button class="m-btn" id="pvpMode">👥 2 Players</button>
+  </div>
+  <div class="hud">
+    <div class="pill"><span class="turn-dot" id="turnDot" style="background:#e11d48"></span><span id="status">Apnar pal (Lal)</span></div>
+    <div class="pill">Wins: <b id="wins">0</b></div>
+    <div class="pill">Best streak: <b id="best">0</b></div>
+  </div>
+  <div class="board" id="board"></div>
+  <button class="btn" id="resetBtn">🔄 Notun Khel</button>
+  <p class="hint">Column e tap/tick kore disc namiye 4-tai consecutive banan (horizontol, vertical ba diagonal). Lal = apni, Holud = opponent.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+var BEST_KEY="gvp_c4_best";
+var ROWS=6,COLS=7;
+var boardEl=document.getElementById("board"),statusEl=document.getElementById("status"),
+    turnDot=document.getElementById("turnDot"),winsEl=document.getElementById("wins"),
+    bestEl=document.getElementById("best"),resetBtn=document.getElementById("resetBtn"),
+    aiBtn=document.getElementById("aiMode"),pvpBtn=document.getElementById("pvpMode");
+var grid,turn,over,mode="ai",wins=0,busy=false;
+
+function best(){var v=parseInt(localStorage.getItem(BEST_KEY)||"0",10);bestEl.textContent=v;return v}
+
+function emptyGrid(){
+  var g=[];
+  for(var r=0;r<ROWS;r++)g.push([0,0,0,0,0,0,0]);
+  return g;
+}
+
+function draw(highlight){
+  var html="";
+  for(var c=0;c<COLS;c++){
+    html+='<button class="col" data-c="'+c+'"'+(over||busy?" disabled":"")+">";
+    for(var r=0;r<ROWS;r++){
+      var v=grid[r][c];
+      var inner=v?('<span class="disc p'+v+'"></span>'):"";
+      var winCls=highlight&&highlight.some(function(h){return h[0]===r&&h[1]===c})?" win":"";
+      html+='<span class="cellw'+(v?"":" empty")+winCls+'">'+inner+"</span>";
+    }
+    html+="</button>";
+  }
+  boardEl.innerHTML=html;
+}
+
+function dropRow(c,player){
+  for(var r=ROWS-1;r>=0;r--)if(!grid[r][c]){grid[r][c]=player;return r}
+  return -1;
+}
+function undo(c){
+  for(var r=0;r<ROWS;r++)if(grid[r][c]){grid[r][c]=0;return}
+}
+
+function winner(player){
+  var dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){
+    if(grid[r][c]!==player)continue;
+    for(var d=0;d<dirs.length;d++){
+      var line=[[r,c]];
+      for(var k=1;k<4;k++){
+        var nr=r+dirs[d][0]*k,nc=c+dirs[d][1]*k;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS||grid[nr][nc]!==player)break;
+        line.push([nr,nc]);
+      }
+      if(line.length===4)return line;
+    }
+  }
+  return null;
+}
+
+function full(){
+  for(var c=0;c<COLS;c++)if(!grid[0][c])return false;
+  return true;
+}
+
+function setStatus(){
+  if(over)return;
+  var isP1=turn===1;
+  turnDot.style.background=isP1?"#e11d48":"#eab308";
+  statusEl.textContent=isP1?(mode==="ai"?"Apnar pal (Lal)":"Player 1 (Lal)"):
+    (mode==="ai"?"AI bhabe chintesi...":"Player 2 (Holud)");
+}
+
+function end(winLine,player){
+  over=true;busy=false;
+  draw(winLine);
+  if(player===1){
+    wins++;winsEl.textContent=wins;
+    if(mode==="ai"){
+      var b=best();
+      if(wins>b){localStorage.setItem(BEST_KEY,String(wins));best()}
+      statusEl.textContent="🏆 Jeet gechen!"+(wins>b?" NOTUN BEST!":"");
+    }else statusEl.textContent="🔴 Player 1 jeetlo!";
+  }else{
+    statusEl.textContent=mode==="ai"?"🤖 AI jeetlo — punoriddhar koro!":"🟡 Player 2 jeetlo!";
+  }
+}
+
+function place(c){
+  if(over||busy)return;
+  var r=dropRow(c,turn);
+  if(r<0)return;
+  var w=winner(turn);
+  if(w){end(w,turn);return}
+  if(full()){over=true;draw();statusEl.textContent="😐 Draw!";return}
+  turn=3-turn;
+  draw();setStatus();
+  if(mode==="ai"&&turn===2){
+    busy=true;draw();
+    setTimeout(aiMove,450);
+  }
+}
+
+function aiMove(){
+  if(over){busy=false;return}
+  var c=aiPick();
+  dropRow(c,2);
+  var w=winner(2);
+  if(w){end(w,2);busy=false;return}
+  turn=1;busy=false;draw();setStatus();
+}
+
+function aiPick(){
+  var c,empty=[];
+  for(c=0;c<COLS;c++)if(!grid[0][c])empty.push(c);
+  for(c=0;c<COLS;c++){
+    if(grid[0][c])continue;
+    dropRow(c,2);
+    var w=winner(2);
+    undo(c);
+    if(w)return c;
+  }
+  for(c=0;c<COLS;c++){
+    if(grid[0][c])continue;
+    dropRow(c,1);
+    var w2=winner(1);
+    undo(c);
+    if(w2)return c;
+  }
+  var pref=[3,2,4,1,5,0,6].filter(function(x){return empty.indexOf(x)!==-1});
+  return pref[Math.floor(Math.random()*Math.min(pref.length,3))]!==undefined?
+    pref[Math.floor(Math.random()*Math.min(pref.length,3))]:
+    empty[Math.floor(Math.random()*empty.length)];
+}
+
+function setMode(m){
+  mode=m;
+  aiBtn.classList.toggle("active",m==="ai");
+  pvpBtn.classList.toggle("active",m==="pvp");
+  reset();
+}
+function reset(){
+  grid=emptyGrid();turn=1;over=false;busy=false;
+  draw();setStatus();
+}
+boardEl.addEventListener("click",function(e){
+  var col=e.target.closest(".col");
+  if(col&&!col.disabled)place(parseInt(col.dataset.c,10));
+});
+resetBtn.addEventListener("click",reset);
+aiBtn.addEventListener("click",function(){setMode("ai")});
+pvpBtn.addEventListener("click",function(){setMode("pvp")});
+best();winsEl.textContent="0";reset();
+})();
+</script>
+</body>
+</html>

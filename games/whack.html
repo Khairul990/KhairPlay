@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whack-a-Mole</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:14px}
+.title{font-size:clamp(22px,5vw,30px);font-weight:800;background:linear-gradient(135deg,#7C4DFF,#00D5FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#00D5FF}
+.pill b.danger{color:#FF3D9A}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:min(340px,88vw)}
+.hole{aspect-ratio:1;border-radius:18px;background:radial-gradient(circle at 50% 75%,#131c38 40%,#0a1024 75%);border:2px solid #2A3855;position:relative;overflow:hidden;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.mole{position:absolute;left:50%;bottom:-72%;transform:translateX(-50%);font-size:clamp(38px,11vw,56px);transition:bottom .14s cubic-bezier(.34,1.56,.64,1);pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.hole.up .mole{bottom:8%}
+.hole .bomb{display:none}
+.hole.bombup .mole{display:none}
+.hole.bombup .bomb{display:block;bottom:8%}
+.hole.hit .mole{animation:whack .18s ease}
+@keyframes whack{50%{transform:translateX(-50%) scale(1.25) rotate(12deg)}100%{transform:translateX(-50%) scale(.9)}}
+.float{position:absolute;font-weight:900;font-size:20px;pointer-events:none;animation:floatUp .55s ease forwards;left:50%;top:30%;transform:translateX(-50%)}
+@keyframes floatUp{to{opacity:0;top:2%;transform:translateX(-50%) scale(1.4)}}
+.btn{background:linear-gradient(135deg,#7C4DFF,#00D5FF);color:#080B16;border:0;padding:12px 26px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.hint{color:#A9B5CC;font-size:12.5px;text-align:center;max-width:420px}
+.combo{min-height:24px;font-weight:800;color:#FFB020}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">Whack-a-Mole</div>
+  <div class="hud">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Time: <b id="time">45s</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+  </div>
+  <div class="combo" id="combo"></div>
+  <div class="grid" id="grid"></div>
+  <button class="btn" id="startBtn">▶ Shuru Kor</button>
+  <p class="hint">Mole ber hoyle taratari tap koro! 💣 bomb tap korle score kete jabe. Combo banale bonus point!</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+var BEST_KEY="gvp_whack_best";
+var HOLES=9,ROUND=45;
+var gridEl=document.getElementById("grid"),scoreEl=document.getElementById("score"),
+    timeEl=document.getElementById("time"),bestEl=document.getElementById("best"),
+    startBtn=document.getElementById("startBtn"),comboEl=document.getElementById("combo");
+var holes=[],score=0,left=ROUND,playing=false,upHole=null,tickIv=null,popIv=null,combo=0,lastHit=0;
+
+function best(){var v=parseInt(localStorage.getItem(BEST_KEY)||"0",10);bestEl.textContent=v;return v}
+
+function build(){
+  var html="";
+  for(var i=0;i<HOLES;i++){
+    html+='<div class="hole" data-i="'+i+'"><span class="mole">🐹</span><span class="bomb">💣</span></div>';
+  }
+  gridEl.innerHTML=html;
+  holes=Array.prototype.slice.call(gridEl.querySelectorAll(".hole"));
+  holes.forEach(function(h){
+    h.addEventListener("pointerdown",function(e){hit(h,e)});
+  });
+}
+
+function floatText(h,txt,color){
+  var s=document.createElement("span");
+  s.className="float";s.textContent=txt;s.style.color=color||"#20C997";
+  h.appendChild(s);
+  setTimeout(function(){s.remove()},560);
+}
+
+function hit(h,e){
+  if(!playing)return;
+  var now=Date.now();
+  if(!h.classList.contains("up")&&!h.classList.contains("bombup"))return;
+  if(h.classList.contains("bombup")){
+    h.classList.remove("bombup");
+    score=Math.max(0,score-5);combo=0;comboEl.textContent="";
+    floatText(h,"-5","#FF3D9A");
+    scoreEl.textContent=score;
+    return;
+  }
+  if(h.classList.contains("up")){
+    h.classList.remove("up");h.classList.add("hit");
+    setTimeout(function(){h.classList.remove("hit")},200);
+    combo=(now-lastHit<1600)?combo+1:1;
+    lastHit=now;
+    var bonus=Math.min(combo-1,10);
+    var pts=1+bonus;
+    score+=pts;
+    scoreEl.textContent=score;
+    floatText(h,"+"+pts+(bonus?" x"+combo:""),"#FFB020");
+    comboEl.textContent=combo>=3?"🔥 Combo x"+combo+"!":"";
+  }
+}
+
+function pop(){
+  if(upHole){
+    upHole.classList.remove("up","bombup");
+    upHole=null;
+  }
+  var free=holes.filter(function(h){return !h.classList.contains("up")&&!h.classList.contains("bombup")});
+  if(!free.length)return;
+  var h=free[Math.floor(Math.random()*free.length)];
+  var isBomb=Math.random()<0.18;
+  h.classList.add(isBomb?"bombup":"up");
+  upHole=h;
+  var speed=Math.max(380,800-(ROUND-left)*8);
+  popIv=setTimeout(pop,speed);
+}
+
+function tick(){
+  left--;
+  timeEl.textContent=left+"s";
+  if(left<=0)finish();
+}
+
+function finish(){
+  playing=false;
+  clearTimeout(popIv);clearInterval(tickIv);
+  if(upHole){upHole.classList.remove("up","bombup");upHole=null}
+  var b=best(),isBest=score>b;
+  if(isBest){localStorage.setItem(BEST_KEY,String(score));best()}
+  comboEl.textContent=isBest?"🏆 NOTUN BEST! "+score:"Shesh! Score: "+score;
+  startBtn.textContent="🔁 Abar Khelun";
+  startBtn.style.display="";
+}
+
+function start(){
+  score=0;left=ROUND;playing=true;combo=0;comboEl.textContent="";
+  scoreEl.textContent="0";timeEl.textContent=ROUND+"s";
+  startBtn.style.display="none";
+  tickIv=setInterval(tick,1000);
+  pop();
+}
+
+build();best();
+startBtn.addEventListener("click",start);
+})();
+</script>
+</body>
+</html>

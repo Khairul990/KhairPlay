@@ -1,0 +1,20 @@
+{
+  "name": "PlayNova — Free Online Games",
+  "short_name": "PlayNova",
+  "description": "Free online gaming platform — kids, educational ar challenge games ek jaygay.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080B16",
+  "theme_color": "#080B16",
+  "lang": "bn",
+  "icons": [
+    {
+      "src": "public/brand/playnova-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

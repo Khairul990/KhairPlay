@@ -5,6 +5,7 @@ const GVP = (function () {
   const CONFIG_KEY = "gvp_config";
   const GAME_LIMIT_KEY = "gvp_plays";
   const RECENT_KEY = "gvp_recent";
+  const RATINGS_KEY = "gvp_ratings";
 
   function getConfig() {
     try {
@@ -82,18 +83,46 @@ const GVP = (function () {
     return basePath() + "pages/play.html?id=" + encodeURIComponent(id);
   }
 
+  function getRatings() {
+    try { return JSON.parse(localStorage.getItem(RATINGS_KEY)) || {}; } catch (e) { return {}; }
+  }
+
+  function getRating(id) {
+    const v = getRatings()[id];
+    return typeof v === "number" && v >= 1 && v <= 5 ? v : 0;
+  }
+
+  function setRating(id, stars) {
+    try {
+      const r = getRatings();
+      r[id] = stars;
+      localStorage.setItem(RATINGS_KEY, JSON.stringify(r));
+    } catch (e) {}
+  }
+
+  function starsHTML(n) {
+    let s = "";
+    for (let i = 1; i <= 5; i++) s += i <= n ? "★" : "☆";
+    return s;
+  }
+
   function gameCardHTML(g) {
     const thumb = g.thumb
       ? '<img src="' + basePath() + g.thumb + '" alt="' + g.title + '" loading="lazy" width="400" height="225">'
       : "";
     const thumbClass = g.thumb ? "game-thumb" : "game-thumb emoji-only";
+    const myRating = getRating(g.id);
+    const ratingBit = myRating
+      ? '<span class="card-stars" title="Apnar rating: ' + myRating + '/5">' + starsHTML(myRating) + "</span>"
+      : "";
+    const catBadge = '<span class="cat-badge badge-' + g.category + '">' + (CATEGORIES.find(function (c) { return c.id === g.category; }) || { icon: "" }).icon + "</span>";
     return '<article class="game-card">' +
       '<div class="' + thumbClass + '" style="background:' + (g.thumb ? "var(--raised)" : "linear-gradient(135deg," + g.color + "33," + g.color + "14)") + '">' +
-      (thumb || g.icon) + '</div>' +
+      (thumb || g.icon) + catBadge + '</div>' +
       '<div class="game-body">' +
       '<h3>' + g.title + '</h3>' +
       '<p>' + g.description + '</p>' +
-      '<div class="game-meta"><span class="tag">' + g.players + '</span><span class="tag">' + g.tags.slice(0, 2).join(", ") + '</span></div>' +
+      '<div class="game-meta"><span class="tag">' + g.players + '</span><span class="tag">' + g.tags.slice(0, 2).join(", ") + '</span>' + ratingBit + '</div>' +
       '<a class="play-btn" href="' + playURL(g.id) + '">▶ KHELN</a>' +
       '</div></article>';
   }
@@ -292,7 +321,72 @@ const GVP = (function () {
       const related = GAMES.filter(function (x) { return x.enabled && x.id !== g.id; }).slice(0, 4);
       renderGames("relatedGrid", related);
     }
+    initRatingWidget(g);
     trackPlay();
+  }
+
+  function initRatingWidget(g) {
+    const box = document.getElementById("ratingWidget");
+    if (!box) return;
+    function paint(hover) {
+      const cur = hover || getRating(g.id);
+      let html = '<span class="rating-label">Apnar rating:</span><span class="rating-stars">';
+      for (let i = 1; i <= 5; i++) {
+        html += '<button type="button" class="star' + (i <= cur ? " on" : "") + '" data-n="' + i + '" aria-label="' + i + ' star">&#9733;</button>';
+      }
+      html += "</span>";
+      if (getRating(g.id)) html += '<span class="rating-thanks">Dhonnobad!</span>';
+      box.innerHTML = html;
+      box.querySelectorAll(".star").forEach(function (s) {
+        s.addEventListener("click", function () {
+          setRating(g.id, parseInt(s.dataset.n, 10));
+          toast("Rating save hoyeche!");
+          paint();
+        });
+        s.addEventListener("mouseenter", function () { paint(parseInt(s.dataset.n, 10)); });
+      });
+      box.addEventListener("mouseleave", function () { paint(); }, { once: true });
+    }
+    paint();
+  }
+
+  function initRandomButton() {
+    document.querySelectorAll(".nav-random").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const pool = GAMES.filter(function (g) { return g.enabled; });
+        if (!pool.length) return;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        toast("🎲 " + pick.title + " khelcho!");
+        location.href = playURL(pick.id);
+      });
+    });
+  }
+
+  function initBackToTop() {
+    const btn = document.createElement("button");
+    btn.className = "back-top";
+    btn.type = "button";
+    btn.setAttribute("aria-label", "Top");
+    btn.textContent = "↑";
+    btn.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
+    document.body.appendChild(btn);
+    let ticking = false;
+    window.addEventListener("scroll", function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        btn.classList.toggle("show", window.scrollY > 450);
+        ticking = false;
+      });
+    }, { passive: true });
+  }
+
+  function initPWA() {
+    if (!("serviceWorker" in navigator)) return;
+    if (location.protocol !== "https:" && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register(basePath() + "sw.js").catch(function () {});
+    });
   }
 
   let adsenseLoaded = false;
@@ -422,6 +516,9 @@ const GVP = (function () {
     initGamesPage();
     initGamePage();
     initAds();
+    initRandomButton();
+    initBackToTop();
+    initPWA();
     document.querySelectorAll("[data-site-name]").forEach(function (el) { el.textContent = SITE_CONFIG.name; });
     document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
   });

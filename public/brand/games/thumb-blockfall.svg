@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Block Fall thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0D1324"/><stop offset="1" stop-color="#182642"/></linearGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <g>
+    <rect x="150" y="40" width="28" height="28" rx="4" fill="#00D5FF"/>
+    <rect x="178" y="40" width="28" height="28" rx="4" fill="#00D5FF"/>
+    <rect x="206" y="40" width="28" height="28" rx="4" fill="#00D5FF"/>
+    <rect x="234" y="40" width="28" height="28" rx="4" fill="#00D5FF"/>
+    <rect x="150" y="68" width="28" height="28" rx="4" fill="#7C4DFF"/>
+    <rect x="178" y="68" width="28" height="28" rx="4" fill="#7C4DFF"/>
+    <rect x="206" y="68" width="28" height="28" rx="4" fill="#7C4DFF"/>
+    <rect x="150" y="96" width="28" height="28" rx="4" fill="#FF3D9A"/>
+    <rect x="206" y="96" width="28" height="28" rx="4" fill="#FF3D9A"/>
+    <rect x="122" y="152" width="28" height="28" rx="4" fill="#20C997"/>
+    <rect x="150" y="152" width="28" height="28" rx="4" fill="#FFB020"/>
+    <rect x="178" y="152" width="28" height="28" rx="4" fill="#20C997"/>
+    <rect x="206" y="152" width="28" height="28" rx="4" fill="#20C997"/>
+    <rect x="234" y="152" width="28" height="28" rx="4" fill="#FFB020"/>
+    <rect x="262" y="152" width="28" height="28" rx="4" fill="#20C997"/>
+  </g>
+</svg>
