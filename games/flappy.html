@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flappy Bird</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px}
+.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700}
+.pill b{color:#22d3ee}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer}
+canvas{border:1px solid rgba(255,255,255,.12);border-radius:14px;max-width:100%;height:auto;box-shadow:0 12px 34px rgba(0,0,0,.5);cursor:pointer}
+.hint{font-size:12px;color:#9aa7d0}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.88);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+    <button class="btn" id="restartBtn">↻ Restart</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="hint">Click / Space / Tap — udan shuru korun!</div>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">😿 Game Over</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var W=420,H=560;
+var canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+var scoreEl=document.getElementById("score"),bestEl=document.getElementById("best");
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var ovBtn=document.getElementById("ovBtn"),restartBtn=document.getElementById("restartBtn");
+var dpr=Math.min(window.devicePixelRatio||1,2);
+canvas.width=W*dpr;canvas.height=H*dpr;
+canvas.style.width="min(92vw,420px)";
+canvas.style.height="auto";
+ctx.scale(dpr,dpr);
+var bird,pipes,score,best=0,started,dead,frame,ground,clouds;
+try{best=parseInt(localStorage.getItem("gvp_flappy_best"))||0}catch(e){}
+bestEl.textContent=best;
+var GROUND_H=64,GRAV=0.42,JUMP=-7.4,GAP=150,SPEED=2.4,PIPE_W=64,PIPE_EVERY=95;
+
+function reset(){
+  bird={x:96,y:H/2-20,vy:0,r:14,rot:0,wing:0};
+  pipes=[];score=0;started=false;dead=false;frame=0;ground=0;
+  clouds=[{x:60,y:70,s:1},{x:220,y:130,s:0.8},{x:350,y:50,s:1.1}];
+  scoreEl.textContent=0;
+  ov.classList.remove("show");
+  draw();
+}
+function spawnPipe(){
+  var margin=40;
+  var topH=margin+Math.random()*(H-GROUND_H-GAP-margin*2);
+  pipes.push({x:W+10,top:topH,scored:false});
+}
+function flap(){
+  if(dead)return;
+  if(!started){started=true;ov.classList.remove("show");}
+  bird.vy=JUMP;
+  bird.wing=6;
+}
+function step(){
+  frame++;
+  if(dead){
+    bird.vy+=GRAV;
+    bird.y+=bird.vy;
+    bird.rot=Math.min(1.6,bird.rot+0.06);
+    if(bird.y+bird.r>=H-GROUND_H){bird.y=H-GROUND_H-bird.r;bird.vy=0;}
+    return;
+  }
+  bird.vy+=GRAV;
+  bird.y+=bird.vy;
+  if(bird.wing>0)bird.wing--;
+  bird.rot=Math.max(-0.5,Math.min(1.2,bird.vy*0.09));
+  if(started&&(!pipes.length||frame%PIPE_EVERY===0))spawnPipe();
+  if(started&&!dead)ground=(ground+SPEED)%(GROUND_H+8);
+  for(var i=pipes.length-1;i>=0;i--){
+    var p=pipes[i];
+    if(!dead)p.x-=SPEED;
+    if(!p.scored&&p.x+PIPE_W<bird.x-bird.r){
+      p.scored=true;score++;scoreEl.textContent=score;
+    }
+    if(p.x<-PIPE_W-10)pipes.splice(i,1);
+  }
+  if(bird.y+bird.r>=H-GROUND_H){bird.y=H-GROUND_H-bird.r;return gameOver(false);}
+  if(bird.y-bird.r<0){bird.y=bird.r;bird.vy=0;}
+  if(started&&!dead){
+    for(var j=0;j<pipes.length;j++){
+      var q=pipes[j];
+      if(bird.x+bird.r>q.x&&bird.x-bird.r<q.x+PIPE_W){
+        if(bird.y-bird.r<q.top||bird.y+bird.r>q.top+GAP)return gameOver(true);
+      }
+    }
+  }
+}
+function gameOver(hitPipe){
+  dead=true;started=false;
+  var msg="Score: "+score+" · Best: "+best;
+  if(score>best){
+    best=score;
+    try{localStorage.setItem("gvp_flappy_best",String(best))}catch(e){}
+    bestEl.textContent=best;
+    ovTitle.textContent="🏆 Notun Record!";
+    msg="Score: "+score+" — shundor udan!";
+  }else{
+    ovTitle.textContent=hitPipe?"😿 Pipe-e laaglo!":"😿 Ground-e laaglo!";
+  }
+  ovMsg.textContent=msg;
+  setTimeout(function(){ov.classList.add("show")},350);
+}
+function drawCloud(x,y,s){
+  ctx.fillStyle="rgba(255,255,255,.08)";
+  ctx.beginPath();
+  ctx.arc(x,y,18*s,0,Math.PI*2);
+  ctx.arc(x+16*s,y-8*s,14*s,0,Math.PI*2);
+  ctx.arc(x+32*s,y,16*s,0,Math.PI*2);
+  ctx.fill();
+}
+function drawBird(){
+  ctx.save();
+  ctx.translate(bird.x,bird.y);
+  ctx.rotate(bird.rot);
+  ctx.fillStyle="#fbbf24";
+  ctx.beginPath();
+  ctx.ellipse(0,0,bird.r+2,bird.r,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#f59e0b";
+  var wy=bird.wing>0?-6:2;
+  ctx.beginPath();
+  ctx.ellipse(-4,wy,8,5,0.3,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#fff";
+  ctx.beginPath();
+  ctx.arc(6,-4,5,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#0b1020";
+  ctx.beginPath();
+  ctx.arc(7.5,-4,2.4,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle="#ef4444";
+  ctx.beginPath();
+  ctx.moveTo(bird.r,0);
+  ctx.lineTo(bird.r+8,2);
+  ctx.lineTo(bird.r,5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+function drawPipe(p){
+  var gradTop=ctx.createLinearGradient(p.x,0,p.x+PIPE_W,0);
+  gradTop.addColorStop(0,"#16a34a");gradTop.addColorStop(0.5,"#22c55e");gradTop.addColorStop(1,"#15803d");
+  ctx.fillStyle=gradTop;
+  ctx.fillRect(p.x,0,PIPE_W,p.top);
+  ctx.fillRect(p.x,p.top+GAP,PIPE_W,H-GROUND_H-(p.top+GAP));
+  ctx.fillStyle="rgba(0,0,0,.25)";
+  ctx.fillRect(p.x-4,p.top-16,PIPE_W+8,16);
+  ctx.fillRect(p.x-4,p.top+GAP,PIPE_W+8,16);
+}
+function drawGround(){
+  ctx.fillStyle="#1e293b";
+  ctx.fillRect(0,H-GROUND_H,W,GROUND_H);
+  ctx.fillStyle="rgba(34,211,238,.35)";
+  for(var i=-1;i<12;i++){
+    var x=i*40-ground;
+    ctx.fillRect(x,H-GROUND_H+8,24,6);
+  }
+}
+function draw(){
+  var sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,"#0b1224");
+  sky.addColorStop(1,"#101a3a");
+  ctx.fillStyle=sky;
+  ctx.fillRect(0,0,W,H);
+  clouds.forEach(function(c){
+    var cx=(c.x-frame*0.3*c.s)%(W+60);
+    if(cx<-60)cx+=W+60;
+    drawCloud(cx,c.y,c.s);
+  });
+  pipes.forEach(drawPipe);
+  drawGround();
+  drawBird();
+  if(!started&&!dead){
+    ctx.fillStyle="rgba(238,242,255,.9)";
+    ctx.font="700 20px Segoe UI, Arial";
+    ctx.textAlign="center";
+    ctx.fillText("Click / Space / Tap",W/2,H/2-60);
+    ctx.font="600 14px Segoe UI, Arial";
+    ctx.fillStyle="rgba(154,167,208,.9)";
+    ctx.fillText("flap kore udan korun",W/2,H/2-36);
+  }
+}
+function loop(){
+  step();
+  draw();
+  requestAnimationFrame(loop);
+}
+document.addEventListener("keydown",function(e){
+  if(e.key===" "||e.key==="ArrowUp"){
+    e.preventDefault();
+    flap();
+  }
+},{passive:false});
+canvas.addEventListener("mousedown",flap);
+document.addEventListener("touchstart",function(e){e.preventDefault();flap()},{passive:false});
+restartBtn.addEventListener("click",reset);
+ovBtn.addEventListener("click",reset);
+reset();
+loop();
+})();
+</script>
+</body>
+</html>

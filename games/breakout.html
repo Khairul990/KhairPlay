@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Brick Breaker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px}
+.hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#22d3ee}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:9px 20px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.btn.ghost{background:rgba(255,255,255,.08);color:#eef2ff;border:1px solid rgba(255,255,255,.15)}
+canvas{border:1px solid rgba(255,255,255,.12);border-radius:12px;max-width:100%;height:auto;box-shadow:0 12px 30px rgba(0,0,0,.5);cursor:none}
+.hint{font-size:12px;color:#9aa7d0}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Lives: <b id="lives">❤❤❤</b></div>
+    <div class="pill">Level: <b id="level">1</b></div>
+    <button class="btn ghost" id="pauseBtn">⏸ Pause</button>
+    <button class="btn" id="restartBtn">↻ Restart</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="hint">Mouse / finger diye paddle soriyan — ball noshto hote dey na!</div>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">😿 Shesh!</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var W=480,H=560;
+var canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+var scoreEl=document.getElementById("score"),livesEl=document.getElementById("lives"),levelEl=document.getElementById("level");
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var ovBtn=document.getElementById("ovBtn"),restartBtn=document.getElementById("restartBtn"),pauseBtn=document.getElementById("pauseBtn");
+var dpr=Math.min(window.devicePixelRatio||1,2);
+canvas.width=W*dpr;canvas.height=H*dpr;
+canvas.style.width="min(94vw,480px)";
+canvas.style.height="auto";
+ctx.scale(dpr,dpr);
+var paddle,ball,bricks,powerups,score,best=0,lives,level,running,paused,over,launched,brickCount;
+try{best=parseInt(localStorage.getItem("gvp_breakout_best"))||0}catch(e){}
+var ROW_COLORS=["#ef4444","#f97316","#f59e0b","#22c55e","#3b82f6","#a855f7"];
+var POWER_COLORS={wide:"#22d3ee",slow:"#f59e0b",life:"#ef4444"};
+var POWER_NAMES={wide:"Wide Paddle",slow:"Slow Ball",life:"+1 Life"};
+var ROWS=5,COLS=10,BRICK_W=42,BRICK_H=18,BRICK_PAD=6,TOP=64;
+
+function reset(){
+  score=0;lives=3;level=1;over=false;paused=false;launched=false;
+  scoreEl.textContent=0;
+  livesEl.textContent="❤❤❤";
+  levelEl.textContent=1;
+  ov.classList.remove("show");
+  buildLevel();
+  resetBall();
+  running=true;
+}
+function buildLevel(){
+  bricks=[];
+  brickCount=0;
+  var rows=Math.min(ROWS+Math.floor((level-1)/2),7);
+  var offX=(W-(COLS*BRICK_W+(COLS-1)*BRICK_PAD))/2;
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<COLS;c++){
+      bricks.push({
+        x:offX+c*(BRICK_W+BRICK_PAD),
+        y:TOP+r*(BRICK_H+BRICK_PAD),
+        w:BRICK_W,h:BRICK_H,
+        hp:r<2?2:1,
+        row:r
+      });
+      brickCount++;
+    }
+  }
+  powerups=[];
+}
+function resetBall(){
+  paddle={x:W/2-45,y:H-40,w:90,h:12};
+  ball={x:W/2,y:H-58,r:8,vx:0,vy:0,speed:5+level*0.35};
+  launched=false;
+}
+function launch(){
+  if(launched||over)return;
+  launched=true;
+  var ang=(-Math.PI/2)+(Math.random()*0.6-0.3);
+  ball.vx=Math.cos(ang)*ball.speed;
+  ball.vy=Math.sin(ang)*ball.speed;
+}
+function loseBall(){
+  launched=false;
+  lives--;
+  livesEl.textContent=lives>0?"❤".repeat(lives):"—";
+  if(lives<=0)return endGame(false);
+  resetBall();
+}
+function endGame(won){
+  over=true;running=false;
+  var msg="Score: "+score+" · Level: "+level+" · Best: "+best;
+  if(score>best){
+    best=score;
+    try{localStorage.setItem("gvp_breakout_best",String(best))}catch(e){}
+    msg="Score: "+score+" — 🏆 Notun Best!";
+  }
+  ovTitle.textContent=won?"🏆 Level Shesh!":"😿 Game Over";
+  ovMsg.textContent=won?"Notun record toiri hoche, notun level ready! "+msg:msg;
+  ovBtn.textContent=won?"▶ Next Level ↪":"▶ Abar Kheln";
+  ov.classList.add("show");
+}
+function nextLevel(){
+  level++;
+  levelEl.textContent=level;
+  ov.classList.remove("show");
+  over=false;
+  buildLevel();
+  resetBall();
+  running=true;
+}
+function maybeDropPowerup(brick){
+  if(Math.random()<0.14){
+    var types=["wide","slow","life"];
+    var t=types[Math.floor(Math.random()*types.length)];
+    if(t==="life"&&lives>=5)return;
+    powerups.push({x:brick.x+brick.w/2,y:brick.y+brick.h/2,r:9,type:t,vy:2.2});
+  }
+}
+function hitBrick(b){
+  b.hp--;
+  if(b.hp<=0){
+    score+=10+level*2;
+    brickCount--;
+    maybeDropPowerup(b);
+    bricks.splice(bricks.indexOf(b),1);
+  }else{
+    score+=5;
+  }
+  scoreEl.textContent=score;
+  if(brickCount<=0){
+    score+=100;
+    scoreEl.textContent=score;
+    if(level>=9){endGame(true);return;}
+    running=false;
+    setTimeout(nextLevel,700);
+  }
+}
+function step(){
+  if(paused||over)return;
+  ball.x+=ball.vx;
+  ball.y+=ball.vy;
+  if(ball.x-ball.r<0){ball.x=ball.r;ball.vx*=-1;}
+  if(ball.x+ball.r>W){ball.x=W-ball.r;ball.vx*=-1;}
+  if(ball.y-ball.r<0){ball.y=ball.r;ball.vy*=-1;}
+  if(ball.y-ball.r>H)return loseBall();
+  if(ball.vy>0&&ball.y+ball.r>=paddle.y&&ball.y-ball.r<=paddle.y+paddle.h&&ball.x>=paddle.x-ball.r&&ball.x<=paddle.x+paddle.w+ball.r){
+    var hit=(ball.x-(paddle.x+paddle.w/2))/(paddle.w/2);
+    var ang=hit*(Math.PI/3);
+    var sp=Math.hypot(ball.vx,ball.vy);
+    ball.vx=Math.sin(ang)*sp;
+    ball.vy=-Math.abs(Math.cos(ang)*sp);
+    ball.y=paddle.y-ball.r;
+  }
+  for(var i=0;i<bricks.length;i++){
+    var b=bricks[i];
+    if(ball.x+ball.r>b.x&&ball.x-ball.r<b.x+b.w&&ball.y+ball.r>b.y&&ball.y-ball.r<b.y+b.h){
+      var ov1=Math.min(Math.abs(ball.x+ball.r-b.x),Math.abs(ball.x-ball.r-b.x-b.w));
+      var ov2=Math.min(Math.abs(ball.y+ball.r-b.y),Math.abs(ball.y-ball.r-b.y-b.h));
+      if(ov1<ov2)ball.vx*=-1;else ball.vy*=-1;
+      hitBrick(b);
+      break;
+    }
+  }
+  for(var p=powerups.length-1;p>=0;p--){
+    var pu=powerups[p];
+    pu.y+=pu.vy;
+    if(pu.y+pu.r>=paddle.y&&pu.y-pu.r<=paddle.y+paddle.h&&pu.x>=paddle.x&&pu.x<=paddle.x+paddle.w){
+      if(pu.type==="wide"){paddle.w=Math.min(150,paddle.w+28);}
+      else if(pu.type==="slow"){ball.vx*=0.65;ball.vy*=0.65;}
+      else{lives=Math.min(5,lives+1);livesEl.textContent="❤".repeat(lives);}
+      score+=15;
+      scoreEl.textContent=score;
+      powerups.splice(p,1);
+    }else if(pu.y-pu.r>H)powerups.splice(p,1);
+  }
+}
+function drawBrick(b){
+  var base=ROW_COLORS[b.row%ROW_COLORS.length];
+  ctx.fillStyle=base;
+  ctx.globalAlpha=b.hp>1?1:0.85;
+  roundRect(b.x,b.y,b.w,b.h,4);
+  ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.strokeStyle="rgba(0,0,0,.35)";
+  ctx.stroke();
+  if(b.hp>1){
+    ctx.fillStyle="rgba(255,255,255,.25)";
+    ctx.fillRect(b.x+4,b.y+4,b.w-8,3);
+  }
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function draw(){
+  ctx.fillStyle="#0a0f1f";
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(255,255,255,.05)";
+  ctx.strokeRect(0,0,W,H);
+  bricks.forEach(drawBrick);
+  ctx.fillStyle="#6d5dfc";
+  roundRect(paddle.x,paddle.y,paddle.w,paddle.h,6);
+  ctx.fill();
+  var g=ctx.createRadialGradient(ball.x-2,ball.y-2,1,ball.x,ball.y,ball.r);
+  g.addColorStop(0,"#fff");
+  g.addColorStop(1,"#22d3ee");
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+  ctx.fill();
+  powerups.forEach(function(pu){
+    ctx.fillStyle=POWER_COLORS[pu.type];
+    ctx.beginPath();
+    ctx.arc(pu.x,pu.y,pu.r,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle="#071026";
+    ctx.font="700 11px Segoe UI, Arial";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(pu.type==="wide"?"W":pu.type==="slow"?"S":"+",pu.x,pu.y+0.5);
+  });
+  if(!launched&&!over){
+    ctx.fillStyle="rgba(238,242,255,.9)";
+    ctx.font="700 18px Segoe UI, Arial";
+    ctx.textAlign="center";
+    ctx.fillText("Click / Tap — Ball charun!",W/2,H/2);
+  }
+  if(paused){
+    ctx.fillStyle="rgba(5,7,15,.7)";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#eef2ff";
+    ctx.font="800 28px Segoe UI, Arial";
+    ctx.textAlign="center";
+    ctx.fillText("⏸ Paused",W/2,H/2);
+  }
+}
+function loop(){
+  step();
+  draw();
+  requestAnimationFrame(loop);
+}
+function togglePause(){
+  if(over)return;
+  paused=!paused;
+  pauseBtn.textContent=paused?"▶ Resume":"⏸ Pause";
+}
+function movePaddle(cx){
+  var rect=canvas.getBoundingClientRect();
+  var x=(cx-rect.left)/rect.width*W;
+  paddle.x=Math.max(0,Math.min(W-paddle.w,x-paddle.w/2));
+}
+canvas.addEventListener("mousemove",function(e){movePaddle(e.clientX)});
+canvas.addEventListener("mousedown",function(e){movePaddle(e.clientX);launch();});
+canvas.addEventListener("touchmove",function(e){e.preventDefault();movePaddle(e.touches[0].clientX)},{passive:false});
+canvas.addEventListener("touchstart",function(e){e.preventDefault();movePaddle(e.touches[0].clientX);launch()},{passive:false});
+pauseBtn.addEventListener("click",togglePause);
+restartBtn.addEventListener("click",function(){ovBtn.textContent="▶ Abar Kheln";reset();});
+ovBtn.addEventListener("click",function(){
+  if(ovTitle.textContent.indexOf("Level Shesh")!==-1)nextLevel();
+  else{ovBtn.textContent="▶ Abar Kheln";reset();}
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="p"||e.key==="P"||e.key===" ")togglePause();
+},{passive:false});
+reset();
+loop();
+})();
+</script>
+</body>
+</html>

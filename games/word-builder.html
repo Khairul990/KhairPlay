@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Builder</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#22d3ee}
+.hint{color:#9aa7d0;font-size:14px;text-align:center}
+.hint b{color:#f59e0b}
+.blanks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:56px}
+.blank{width:clamp(30px,8vw,44px);height:clamp(40px,10vw,56px);border-bottom:3px solid #6d5dfc;display:grid;place-items:center;font-size:clamp(22px,6vw,30px);font-weight:800;text-transform:uppercase}
+.blank.guess{border-color:#22d3ee}
+.lives{font-size:16px;letter-spacing:4px}
+.keyboard{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;width:min(96vw,520px)}
+.key{background:#1c2752;border:1px solid rgba(255,255,255,.14);color:#eef2ff;padding:11px 0;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;text-transform:uppercase;transition:.12s}
+.key:hover{background:#243066}
+.key:disabled{opacity:.35;cursor:default}
+.key.good{background:rgba(34,197,94,.35);border-color:#22c55e}
+.key.bad{background:rgba(239,68,68,.3);border-color:#ef4444}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0;max-width:420px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pill-row">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Word: <b id="wn">1</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+    <div class="pill">Lives: <span class="lives" id="lives">💚💚💚💚💚💚</span></div>
+  </div>
+  <div class="hint">💡 Hint: <b id="hint"></b></div>
+  <div class="blanks" id="blanks"></div>
+  <div class="keyboard" id="kb"></div>
+  <button class="btn" id="skipBtn">⤳ Skip (0 point)</button>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">🎉 Shesh!</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var WORDS=[
+  {w:"APPLE",h:"Red ar green fol — Teacher's favorite 🍎"},
+  {w:"TIGER",h:"Baner Raja 🐅"},
+  {w:"SCHOOL",h:"Jekhane amra shikhi 🏫"},
+  {w:"MUSIC",h:"Gaon ar bajon er mel 💃"},
+  {w:"OCEAN",h:"Bishwer bisal pani 🌊"},
+  {w:"ROCKET",h:"Akash-e udan 🚀"},
+  {w:"PLANET",h:"Surjo-r kache ghura 🪐"},
+  {w:"BANANA",h:"Lal-puta komola fol 🍌"},
+  {w:"CLOUD",h:"Akasher shada futo ☁️"},
+  {w:"FLOWER",h:"Bagiche-r shondorjo 🌸"},
+  {w:"RABBIT",h:"Chhoto phokror soshi 🐇"},
+  {w:"GUITAR",h:"Tar bajiye gaan 💃"},
+  {w:"PIZZA",h:"Italy-r lokpriyo khabadar 🍕"},
+  {w:"DOLPHIN",h:"Rajpoth samudro-r budhiman 🐬"},
+  {w:"LIBRARY",h:"Boi-r bhandar 📚"},
+  {w:"JUNGLE",h:"Ghonboon ar bonobon 🌴"},
+  {w:"CANDLE",h:"Alor sroto 🕯️"},
+  {w:"BRIDGE",h:"Nodi par kore pokkho milay 🌉"},
+  {w:"DESERT",h:"Shukno balur desh 🏜️"},
+  {w:"CASTLE",h:"Raja-r thikana 🏰"}
+];
+var blanksEl=document.getElementById("blanks"),kbEl=document.getElementById("kb"),hintEl=document.getElementById("hint");
+var scoreEl=document.getElementById("score"),wnEl=document.getElementById("wn"),bestEl=document.getElementById("best"),livesEl=document.getElementById("lives");
+var skipBtn=document.getElementById("skipBtn"),ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg"),ovBtn=document.getElementById("ovBtn");
+var score=0,wordNum=1,best=0,lives=6,current=null,revealed=[],tried={},over=false;
+var LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+try{best=parseInt(localStorage.getItem("gvp_word_best"))||0}catch(e){}
+bestEl.textContent=best;
+
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+var order=shuffle(WORDS.map(function(_,i){return i;}));
+function newWord(){
+  if(order.length===0){order=shuffle(WORDS.map(function(_,i){return i;}));}
+  current=WORDS[order.pop()];
+  hintEl.textContent=current.h;
+  revealed=current.w.split("").map(function(){return false;});
+  tried={};
+  wnEl.textContent=wordNum;
+  renderBlanks();
+  renderKeyboard();
+}
+function renderBlanks(){
+  blanksEl.innerHTML=current.w.split("").map(function(c,i){
+    var show=revealed[i];
+    return '<div class="blank'+(show?" guess":"")+'">'+(show?c:"")+'</div>';
+  }).join("");
+}
+function renderKeyboard(){
+  kbEl.innerHTML=LETTERS.map(function(l){
+    var cls="key";
+    if(tried[l]!==undefined)cls+=tried[l]?" good":" bad";
+    return '<button class="'+cls+'" data-l="'+l+'"'+(tried[l]!==undefined?" disabled":"")+'>'+l+'</button>';
+  }).join("");
+}
+function guess(l){
+  if(over||tried[l]!==undefined)return;
+  var hit=current.w.indexOf(l)!==-1;
+  tried[l]=hit;
+  if(hit){
+    current.w.split("").forEach(function(c,i){if(c===l)revealed[i]=true;});
+    renderBlanks();
+    if(revealed.every(function(r){return r;})){
+      score+=10;
+      scoreEl.textContent=score;
+      wordNum++;
+      setTimeout(newWord,500);
+    }
+  }else{
+    lives--;
+    updateLives();
+    if(lives<=0){
+      over=true;
+      revealAll();
+      setTimeout(function(){endGame(true)},600);
+    }
+  }
+  renderKeyboard();
+}
+function updateLives(){
+  var h="";
+  for(var i=0;i<6;i++)h+=i<lives?"💚":"🖤";
+  livesEl.textContent=h;
+}
+function revealAll(){
+  revealed=revealed.map(function(){return true;});
+  renderBlanks();
+}
+function endGame(dead){
+  if(score>best){
+    best=score;
+    try{localStorage.setItem("gvp_word_best",String(best))}catch(e){}
+    bestEl.textContent=best;
+    ovTitle.textContent="🏆 Notun Best!";
+  }else{
+    ovTitle.textContent=dead?"😿 Lives Shesh!":"🎉 Shesh!";
+  }
+  ovMsg.textContent="Score: "+score+" · Best: "+best+(dead?" · Shabdta chilo: "+current.w:"");
+  ov.classList.add("show");
+}
+kbEl.addEventListener("click",function(e){
+  var b=e.target.closest(".key");
+  if(!b)return;
+  guess(b.dataset.l);
+});
+document.addEventListener("keydown",function(e){
+  var l=(e.key||"").toUpperCase();
+  if(LETTERS.indexOf(l)!==-1)guess(l);
+});
+skipBtn.addEventListener("click",function(){
+  if(over)return;
+  revealAll();
+  wordNum++;
+  setTimeout(newWord,400);
+});
+ovBtn.addEventListener("click",function(){
+  score=0;wordNum=1;lives=6;over=false;
+  scoreEl.textContent=0;
+  updateLives();
+  ov.classList.remove("show");
+  newWord();
+});
+updateLives();
+newWord();
+})();
+</script>
+</body>
+</html>

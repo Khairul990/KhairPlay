@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flag Explorer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#22d3ee}
+.flag-\boxed{width:min(88vw,340px);aspect-ratio:8/5;border-radius:14px;overflow:hidden;position:relative;box-shadow:0 14px 34px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);background:#fff}
+.flag-box .over{position:absolute;inset:0}
+.question{font-size:16px;font-weight:700;color:#9aa7d0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(92vw,420px)}
+.opt{background:#1c2752;border:1px solid rgba(255,255,255,.14);color:#eef2ff;padding:15px;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;transition:.15s}
+.opt:hover{background:#243066;transform:translateY(-2px)}
+.opt.correct{background:rgba(34,197,94,.3);border-color:#22c55e}
+.opt.wrong{background:rgba(239,68,68,.3);border-color:#ef4444}
+.feedback{font-weight:800;min-height:24px;font-size:15px;text-align:center}
+.feedback.ok{color:#22c55e}.feedback.bad{color:#ef4444}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pill-row">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Streak: <b id="streak">0</b>🔥</div>
+    <div class="pill">Best: <b id="best">0</b></div>
+    <div class="pill">Q: <b id="qn">1</b>/10</div>
+  </div>
+  <div class="question">🚩 Ei desher flag — namta chinen?</div>
+  <div class="flag-box" id="flagBox"><div class="over" id="flagOver"></div></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="opts" id="opts"></div>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">🎉 Shesh!</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var FLAGS=[
+  {n:"Japan",css:"background:#fff",over:"radial-gradient(circle at 50% 50%, #bc002d 0 30%, transparent 31%)"},
+  {n:"Bangladesh",css:"background:#006a4e",over:"radial-gradient(circle at 45% 50%, #f42a41 0 31%, transparent 32%)"},
+  {n:"France",css:"background:linear-gradient(90deg,#0055a4 33.3%,#fff 33.3% 66.6%,#ef4135 66.6%)",over:""},
+  {n:"Italy",css:"background:linear-gradient(90deg,#009246 33.3%,#fff 33.3% 66.6%,#ce2b37 66.6%)",over:""},
+  {n:"Germany",css:"background:linear-gradient(180deg,#000 33.3%,#dd0000 33.3% 66.6%,#ffce00 66.6%)",over:""},
+  {n:"Sweden",css:"background:#006aa7",over:"linear-gradient(90deg,transparent 24%,#fecc00 24% 36%,transparent 36%),linear-gradient(180deg,transparent 42%,#fecc00 42% 58%,transparent 58%)"},
+  {n:"Switzerland",css:"background:#d52b1e",over:"linear-gradient(90deg,transparent 40%,#fff 40% 60%,transparent 60%),linear-gradient(180deg,transparent 30%,#fff 30% 70%,transparent 70%)"},
+  {n:"Netherlands",css:"background:linear-gradient(180deg,#ae1c28 33.3%,#fff 33.3% 66.6%,#21468b 66.6%)",over:""},
+  {n:"Spain",css:"background:linear-gradient(180deg,#aa151b 25%,#f1bf00 25% 75%,#aa151b 75%)",over:""},
+  {n:"India",css:"background:linear-gradient(180deg,#ff9933 33%,#fff 33% 66%,#138808 66%)",over:"radial-gradient(circle at 50% 50%, transparent 0 16%, #000080 16% 20%, transparent 21%)"},
+  {n:"Nigeria",css:"background:linear-gradient(90deg,#008751 33%,#fff 33% 66%,#008751 66%)",over:""},
+  {n:"Ireland",css:"background:linear-gradient(90deg,#169b62 33%,#fff 33% 66%,#ff883e 66%)",over:""},
+  {n:"Romania",css:"background:linear-gradient(90deg,#002b7f 33%,#fcd116 33% 66%,#ce1126 66%)",over:""},
+  {n:"Belgium",css:"background:linear-gradient(90deg,#000 33%,#fdda24 33% 66%,#ef3340 66%)",over:""},
+  {n:"Ukraine",css:"background:linear-gradient(180deg,#0057b7 50%,#ffd700 50%)",over:""},
+  {n:"Poland",css:"background:linear-gradient(180deg,#fff 50%,#dc143c 50%)",over:""},
+  {n:"Indonesia",css:"background:linear-gradient(180deg,#ce1126 50%,#fff 50%)",over:""},
+  {n:"United States",css:"background:linear-gradient(180deg,#b22234 0 15.4%,#fff 15.4% 30.8%,#b22234 30.8% 46.2%,#fff 46.2% 61.5%,#b22234 61.5% 76.9%,#fff 76.9% 92.3%,#b22234 92.3%)",over:"background:#3c3b6e no-repeat 0 0/40% 54%"},
+  {n:"Canada",css:"background:linear-gradient(90deg,#d80621 25%,#fff 25% 75%,#d80621 75%)",over:""},
+  {n:"Argentina",css:"background:linear-gradient(180deg,#74acdf 33%,#fff 33% 66%,#74acdf 66%)",over:"radial-gradient(circle at 50% 50%, #f6b40e 0 8%, transparent 9%)"}
+];
+var flagBox=document.getElementById("flagBox"),flagOver=document.getElementById("flagOver");
+var optsEl=document.getElementById("opts"),fb=document.getElementById("feedback");
+var scoreEl=document.getElementById("score"),streakEl=document.getElementById("streak"),bestEl=document.getElementById("best"),qnEl=document.getElementById("qn");
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg"),ovBtn=document.getElementById("ovBtn");
+var totalQ=10,score=0,streak=0,best=0,qn=1,answer=null,locked=false,correctCount=0;
+try{best=parseInt(localStorage.getItem("gvp_flag_best"))||0}catch(e){}
+bestEl.textContent=best;
+
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+function pickOptions(correct){
+  var others=shuffle(FLAGS.filter(function(f){return f.n!==correct.n;})).slice(0,3);
+  return shuffle([correct].concat(others));
+}
+function show(){
+  locked=false;
+  fb.textContent="";fb.className="feedback";
+  answer=FLAGS[Math.floor(Math.random()*FLAGS.length)];
+  flagBox.setAttribute("style",answer.css);
+  flagOver.setAttribute("style",answer.over||"display:none");
+  qnEl.textContent=qn;
+  var opts=pickOptions(answer);
+  optsEl.innerHTML=opts.map(function(o){return '<button class="opt" data-n="'+o.n+'">'+o.n+'</button>';}).join("");
+}
+function pickAnswer(name){
+  if(locked)return;
+  locked=true;
+  var btns=optsEl.querySelectorAll(".opt");
+  btns.forEach(function(b){
+    if(b.dataset.n===answer.n)b.classList.add("correct");
+    else if(b.dataset.n===name)b.classList.add("wrong");
+    b.disabled=true;
+  });
+  if(name===answer.n){
+    score+=10+streak*2;
+    streak++;
+    correctCount++;
+    fb.textContent="✅ Correct! +"+(10+(streak-1)*2)+" point";
+    fb.className="feedback ok";
+  }else{
+    streak=0;
+    fb.textContent="❌ Eta holo "+answer.n+"!";
+    fb.className="feedback bad";
+  }
+  scoreEl.textContent=score;
+  streakEl.textContent=streak;
+  setTimeout(function(){
+    if(qn>=totalQ)finish();
+    else{qn++;show();}
+  },1100);
+}
+function finish(){
+  if(score>best){
+    best=score;
+    try{localStorage.setItem("gvp_flag_best",String(best))}catch(e){}
+    bestEl.textContent=best;
+    ovTitle.textContent="🏆 Notun Best!";
+  }else{
+    ovTitle.textContent="🎉 Shesh!";
+  }
+  ovMsg.textContent="Score: "+score+" · "+correctCount+"/"+totalQ+" thik · Best: "+best;
+  ov.classList.add("show");
+}
+optsEl.addEventListener("click",function(e){
+  var b=e.target.closest(".opt");
+  if(!b)return;
+  pickAnswer(b.dataset.n);
+});
+ovBtn.addEventListener("click",function(){
+  score=0;streak=0;qn=1;correctCount=0;
+  scoreEl.textContent=0;streakEl.textContent=0;
+  ov.classList.remove("show");
+  show();
+});
+show();
+})();
+</script>
+</body>
+</html>

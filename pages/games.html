@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Games — Free Online Games | KhairPlay</title>
+  <meta name="description" content="Shob games ek jaygay — kids, educational ar challenge games, 100% free browser-e kheln.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <div class="announce"></div>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a class="logo" href="../index.html">
+        <span class="logo-icon">🎮</span>
+        <span data-site-name>KhairPlay</span>
+      </a>
+      <button class="burger" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="games.html">All Games</a></li>
+        <li><a href="games.html?cat=kids">Kids</a></li>
+        <li><a href="games.html?cat=educational">Educational</a></li>
+        <li><a href="games.html?cat=adult">Challenge</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a class="nav-cta" href="games.html">▶ KHELUN</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding-bottom:10px">
+      <div class="container">
+        <h1 style="font-size:clamp(26px,4vw,40px)">🎮 Shob Games</h1>
+        <p>Filter ba search kore apnar pochonder game khujun — <b id="gameCount">0</b> ti game ready ache.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <input type="text" class="search-box" id="gameSearch" placeholder="🔎 Game khujun... (jemon: snake, math, puzzle)">
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-cat="all">🎯 Shob</button>
+          <button class="filter-btn" data-cat="kids">🧸 Kids</button>
+          <button class="filter-btn" data-cat="educational">🎓 Educational</button>
+          <button class="filter-btn" data-cat="adult">🎯 Challenge</button>
+        </div>
+
+        <div class="game-grid" id="allGamesGrid"></div>
+
+        <div class="ad-slot ad-banner ad-bottom" style="margin-top:30px">
+          <div class="ad-label">Advertisement</div>
+          <div class="ad-inner"><ins class="adsbygoogle" style="display:block"></ins></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-about">
+          <a class="logo" href="../index.html"><span class="logo-icon">🎮</span><span data-site-name>KhairPlay</span></a>
+          <p>Free online gaming platform — kids, educational ar challenge games ek jaygay.</p>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <ul>
+            <li><a href="games.html?cat=kids">Kids Games</a></li>
+            <li><a href="games.html?cat=educational">Educational</a></li>
+            <li><a href="games.html?cat=adult">Challenge</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Site</h4>
+          <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="games.html">All Games</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Use</a></li>
+            <li><a href="../admin/index.html">⚡ Control Panel</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">© <span data-year></span> <span data-site-name>KhairPlay</span>. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../js/games-data.js"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

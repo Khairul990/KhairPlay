@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — KhairPlay</title>
+  <meta name="description" content="KhairPlay-er shathe jogajog korun — suggestion, bug report ba business inquiry. Amra tokhon-i reply dite pari.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <div class="announce"></div>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a class="logo" href="../index.html">
+        <span class="logo-icon">🎮</span>
+        <span data-site-name>KhairPlay</span>
+      </a>
+      <button class="burger" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="games.html">All Games</a></li>
+        <li><a href="games.html?cat=kids">Kids</a></li>
+        <li><a href="games.html?cat=educational">Educational</a></li>
+        <li><a href="games.html?cat=adult">Challenge</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a class="nav-cta" href="games.html">▶ KHELUN</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="padding-bottom:10px">
+      <div class="container">
+        <h1 style="font-size:clamp(26px,4vw,40px)">✉️ Jogajog Korun</h1>
+        <p>Suggestion, bug report, na ki business inquiry — j kichhu holeo amake likhun. Amra dhorito reply dite chachhi.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px">
+          <div class="content-card">
+            <h2>📩 Direct Email</h2>
+            <p>Niche form-ti fill up korle apnar device-e email app khulbe, message ready hoye jabe — shudhu Send din.</p>
+            <p style="margin-top:12px"><b>Email:</b> <a id="contactEmail" href="#" style="color:var(--brand-2)">hello@khairplay.com</a></p>
+            <p style="margin-top:6px;font-size:13px">(Control panel theke apnar desired email set kore nen.)</p>
+          </div>
+
+          <div class="content-card">
+            <h2>✍️ Message Pathan</h2>
+            <div style="display:grid;gap:10px">
+              <input type="text" class="search-box" id="cName" placeholder="Apnar nam" style="margin:0">
+              <input type="email" class="search-box" id="cEmail" placeholder="Apnar email" style="margin:0">
+              <textarea class="search-box" id="cMsg" rows="5" placeholder="Apnar barta..." style="margin:0;resize:vertical;font-family:inherit"></textarea>
+              <button class="btn btn-primary" id="cSend" style="justify-content:center">📨 Email-e Pathan</button>
+              <p id="cHint" style="font-size:13px;color:var(--muted)">Form kono server-e data pathay na — shudhu apnar nijer email app-e draft toiri kore.</p>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <h2>💡 Ki Rokom Message Patar Jabe</h2>
+            <ul>
+              <li>🎮 Kono game-e bug pele? Game-r nam ar ki bhul hoilo likhun.</li>
+              <li>🆕 Notun game chachhen? Kon type-r game lagbe bolen.</li>
+              <li>📢 Advertisement ba business partnership er jonyo.</li>
+              <li>🙏 Any suggestion — site kibhabe aro bhalo kora jay.</li>
+            </ul>
+            <p style="margin-top:12px">Amra shob shune nei, kintu reply deyar somoy somman koren — 24-48 ghontar moddhe try korbo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-about">
+          <a class="logo" href="../index.html"><span class="logo-icon">🎮</span><span data-site-name>KhairPlay</span></a>
+          <p>Free online gaming platform — kids, educational ar challenge games ek jaygay.</p>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <ul>
+            <li><a href="games.html?cat=kids">Kids Games</a></li>
+            <li><a href="games.html?cat=educational">Educational</a></li>
+            <li><a href="games.html?cat=adult">Challenge</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Site</h4>
+          <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="games.html">All Games</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms of Use</a></li>
+            <li><a href="../admin/index.html">⚡ Control Panel</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">© <span data-year></span> <span data-site-name>KhairPlay</span>. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../js/games-data.js"></script>
+  <script src="../js/main.js"></script>
+  <script>
+    (function(){
+      var email=(SITE_CONFIG&&SITE_CONFIG.contactEmail)||"hello@khairplay.com";
+      var link=document.getElementById("contactEmail");
+      link.textContent=email;
+      link.href="mailto:"+email;
+      document.getElementById("cSend").addEventListener("click",function(){
+        var name=(document.getElementById("cName").value||"").trim();
+        var from=(document.getElementById("cEmail").value||"").trim();
+        var msg=(document.getElementById("cMsg").value||"").trim();
+        if(!name||!msg){
+          alert("Nam ar message duitai likhun.");
+          return;
+        }
+        var subject=encodeURIComponent("[KhairPlay] Message from "+name);
+        var body=encodeURIComponent(msg+"\n\n— "+name+(from?" ("+from+")":""));
+        location.href="mailto:"+email+"?subject="+subject+"&body="+body;
+      });
+    })();
+  </script>
+</body>
+</html>

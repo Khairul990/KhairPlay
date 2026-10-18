@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.modes{display:flex;gap:8px}
+.mode-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#9aa7d0;padding:8px 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.mode-btn.active{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border-color:transparent}
+.board{display:grid;grid-template-columns:repeat(3,minmax(70px,110px));gap:10px}
+.cell{aspect-ratio:1;background:#111834;border:1px solid rgba(255,255,255,.12);border-radius:14px;display:grid;place-items:center;font-size:clamp(34px,8vw,52px);font-weight:800;cursor:pointer;transition:.15s;user-select:none}
+.cell:hover{background:#1c2752;transform:scale(1.04)}
+.cell.x{color:#22d3ee}.cell.o{color:#f472b6}
+.cell.win{background:rgba(34,197,94,.22);border-color:#22c55e;box-shadow:0 0 18px rgba(34,197,94,.35)}
+#msg{font-size:17px;font-weight:700;min-height:26px;text-align:center}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="modes">
+    <button class="mode-btn active" id="mAI">🤖 vs Computer</button>
+    <button class="mode-btn" id="m2P">👥 2 Players</button>
+  </div>
+  <div class="hud">
+    <div class="pill">❌ X: <b id="sx">0</b></div>
+    <div class="pill">⭕ O: <b id="so">0</b></div>
+    <div class="pill">🤝 Draw: <b id="sd">0</b></div>
+  </div>
+  <div id="msg">X diye shuru korun!</div>
+  <div class="board" id="board"></div>
+  <button class="btn" id="resetBtn">↻ Notun Khel</button>
+</div>
+<script>
+(function(){
+"use strict";
+var boardEl=document.getElementById("board"),msg=document.getElementById("msg");
+var sx=document.getElementById("sx"),so=document.getElementById("so"),sd=document.getElementById("sd");
+var mAI=document.getElementById("mAI"),m2P=document.getElementById("m2P"),resetBtn=document.getElementById("resetBtn");
+var board,turn,over,vsAI=true;
+var wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+var stats={x:0,o:0,d:0};
+try{
+  var s=JSON.parse(localStorage.getItem("gvp_ttt_stats"));
+  if(s){stats.x=s.x||0;stats.o=s.o||0;stats.d=s.d||0;showStats();}
+}catch(e){}
+function showStats(){sx.textContent=stats.x;so.textContent=stats.o;sd.textContent=stats.d;}
+function saveStats(){try{localStorage.setItem("gvp_ttt_stats",JSON.stringify(stats))}catch(e){}}
+function newGame(){
+  board=Array(9).fill("");
+  turn="X";over=false;
+  msg.textContent=vsAI?"X diye shuru korun!":"Player X er palon!";
+  render();
+}
+function render(){
+  var html="";
+  for(var i=0;i<9;i++){
+    var v=board[i];
+    html+='<div class="cell '+(v? v.toLowerCase():'')+'" data-i="'+i+'">'+v+'</div>';
+  }
+  boardEl.innerHTML=html;
+}
+function winnerInfo(){
+  for(var i=0;i<wins.length;i++){
+    var w=wins[i];
+    if(board[w[0]]&&board[w[0]]===board[w[1]]&&board[w[1]]===board[w[2]]){
+      return {p:board[w[0]],line:w};
+    }
+  }
+  if(board.every(function(c){return c;}))return {p:"draw",line:null};
+  return null;
+}
+function endCheck(){
+  var w=winnerInfo();
+  if(!w)return false;
+  over=true;
+  var cells=boardEl.querySelectorAll(".cell");
+  if(w.line)w.line.forEach(function(i){cells[i].classList.add("win");});
+  if(w.p==="draw"){
+    stats.d++;msg.textContent="🤝 Draw hoyeche! Abar kheln.";
+  }else{
+    if(w.p==="X")stats.x++;else stats.o++;
+    msg.textContent=(vsAI&&w.p==="O")?"😿 Computer jeetlo!":"🏆 "+w.p+" jeetlo!";
+  }
+  showStats();saveStats();
+  return true;
+}
+function place(i){
+  if(over||board[i])return;
+  board[i]=turn;
+  render();
+  if(endCheck())return;
+  turn=turn==="X"?"O":"X";
+  msg.textContent=vsAI?(turn==="X"?"Apnar palon (X)...":"Computer bichar korche..."):(turn==="X"?"Player X er palon!":"Player O er palon!");
+  if(vsAI&&turn==="O"){
+    setTimeout(aiMove,320);
+  }
+}
+function emptyIdx(){
+  var a=[];
+  for(var i=0;i<9;i++)if(!board[i])a.push(i);
+  return a;
+}
+function bestMove(mark){
+  var empt=emptyIdx();
+  var bestScore=-Infinity,move=empt[0];
+  for(var i=0;i<empt.length;i++){
+    board[empt[i]]=mark;
+    var sc=minimax(0,false,mark);
+    board[empt[i]]="";
+    if(sc>bestScore){bestScore=sc;move=empt[i];}
+  }
+  return move;
+}
+function minimax(depth,maximizing,aiMark){
+  var opp=aiMark==="X"?"O":"X";
+  var w=winnerInfo();
+  if(w){
+    if(w.p===aiMark)return 10-depth;
+    if(w.p===opp)return depth-10;
+    return 0;
+  }
+  var mark=maximizing?aiMark:opp;
+  if(maximizing){
+    var best=-Infinity;
+    for(var i=0;i<9;i++){
+      if(!board[i]){
+        board[i]=mark;
+        best=Math.max(best,minimax(depth+1,false,aiMark));
+        board[i]="";
+      }
+    }
+    return best;
+  }else{
+    var best2=Infinity;
+    for(var j=0;j<9;j++){
+      if(!board[j]){
+        board[j]=mark;
+        best2=Math.min(best2,minimax(depth+1,true,aiMark));
+        board[j]="";
+      }
+    }
+    return best2;
+  }
+}
+function aiMove(){
+  if(over)return;
+  place(bestMove("O"));
+}
+boardEl.addEventListener("click",function(e){
+  var c=e.target.closest(".cell");
+  if(!c)return;
+  var i=parseInt(c.dataset.i,10);
+  if(vsAI&&turn==="O")return;
+  place(i);
+});
+resetBtn.addEventListener("click",newGame);
+mAI.addEventListener("click",function(){
+  vsAI=true;mAI.classList.add("active");m2P.classList.remove("active");newGame();
+});
+m2P.addEventListener("click",function(){
+  vsAI=false;m2P.classList.add("active");mAI.classList.remove("active");newGame();
+});
+newGame();
+})();
+</script>
+</body>
+</html>

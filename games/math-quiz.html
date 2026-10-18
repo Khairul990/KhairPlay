@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Whiz</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.pill b{color:#22d3ee}
+.diff{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.d-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#9aa7d0;padding:8px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.d-btn.active{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border-color:transparent}
+.qbox{background:#161f42;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:26px 30px;text-align:center;min-width:min(92vw,420px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.q{font-size:clamp(30px,7vw,46px);font-weight:800;letter-spacing:1px}
+.timer-bar{height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:16px}
+.timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#6d5dfc,#22d3ee);transition:width .2s linear}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(92vw,420px)}
+.opt{background:#1c2752;border:1px solid rgba(255,255,255,.14);color:#eef2ff;padding:16px;border-radius:14px;font-size:20px;font-weight:800;cursor:pointer;transition:.15s}
+.opt:hover{background:#243066;transform:translateY(-2px)}
+.opt.correct{background:rgba(34,197,94,.3);border-color:#22c55e}
+.opt.wrong{background:rgba(239,68,68,.3);border-color:#ef4444}
+.feedback{font-weight:800;min-height:24px;font-size:15px}
+.feedback.ok{color:#22c55e}.feedback.bad{color:#ef4444}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:10px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="diff">
+    <button class="d-btn active" data-d="easy">😊 Easy</button>
+    <button class="d-btn" data-d="medium">🙂 Medium</button>
+    <button class="d-btn" data-d="hard">😎 Hard</button>
+    <button class="d-btn" data-d="mixed">🎲 Mixed</button>
+  </div>
+  <div class="pill-row">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Streak: <b id="streak">0</b>🔥</div>
+    <div class="pill">Best: <b id="best">0</b></div>
+    <div class="pill">Q: <b id="qn">1</b>/10</div>
+  </div>
+
+  <div class="qbox">
+    <div class="q" id="question">2 + 2 = ?</div>
+    <div class="timer-bar"><div class="timer-fill" id="tfill"></div></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="opts" id="opts"></div>
+  <button class="btn" id="nextBtn">Next →</button>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">Shesh!</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var qEl=document.getElementById("question"),optsEl=document.getElementById("opts"),fb=document.getElementById("feedback");
+var scoreEl=document.getElementById("score"),streakEl=document.getElementById("streak"),bestEl=document.getElementById("best"),qnEl=document.getElementById("qn");
+var tfill=document.getElementById("tfill"),nextBtn=document.getElementById("nextBtn");
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg"),ovBtn=document.getElementById("ovBtn");
+var diff="easy",score=0,streak=0,best=0,qNum=1,totalQ=10,answer=null,locked=false,correctCount=0;
+var timeLeft=10,maxTime=10,timer=null;
+try{best=parseInt(localStorage.getItem("gvp_math_best"))||0}catch(e){}
+bestEl.textContent=best;
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function makeQuestion(){
+  var d=diff;
+  if(d==="mixed"){
+    var pool=["easy","medium","hard"];
+    d=pool[rnd(0,2)];
+  }
+  var a,b,op,ans;
+  var ops=["+","-","×"];
+  if(d==="easy"){a=rnd(1,12);b=rnd(1,12);op=ops[rnd(0,1)];maxTime=12;}
+  else if(d==="medium"){a=rnd(3,25);b=rnd(2,20);op=ops[rnd(0,2)];maxTime=12;}
+  else{a=rnd(12,60);b=rnd(6,30);op=ops[rnd(0,2)];maxTime=10;}
+  if(op==="+")ans=a+b;
+  else if(op==="-"){if(b>a){var t=a;a=b;b=t;}ans=a-b;}
+  else ans=a*b;
+  qEl.textContent=a+" "+op+" "+b+" = ?";
+  return ans;
+}
+function genOptions(ans){
+  var set=[ans];
+  var tries=0;
+  while(set.length<4&&tries<40){
+    tries++;
+    var delta=rnd(1,9)*(Math.random()<0.5?-1:1);
+    var v=ans+delta;
+    if(v<0)v=ans+delta*-1;
+    if(set.indexOf(v)===-1&&v>=0)set.push(v);
+  }
+  while(set.length<4){var v2=ans+set.length;if(set.indexOf(v2)===-1)set.push(v2);}
+  return shuffle(set);
+}
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+function showQuestion(){
+  locked=false;
+  fb.textContent="";fb.className="feedback";
+  answer=makeQuestion();
+  qnEl.textContent=qNum;
+  var opts=genOptions(answer);
+  optsEl.innerHTML=opts.map(function(o){return '<button class="opt" data-v="'+o+'">'+o+'</button>';}).join("");
+  timeLeft=maxTime;
+  tfill.style.width="100%";
+  clearInterval(timer);
+  timer=setInterval(function(){
+    timeLeft-=0.2;
+    if(timeLeft<0)timeLeft=0;
+    tfill.style.width=(timeLeft/maxTime*100)+"%";
+    if(timeLeft<=0&&!locked){
+      clearInterval(timer);
+      pick(null);
+    }
+  },200);
+}
+function pick(val){
+  if(locked)return;
+  locked=true;
+  clearInterval(timer);
+  var btns=optsEl.querySelectorAll(".opt");
+  btns.forEach(function(b){
+    var v=parseInt(b.dataset.v,10);
+    if(v===answer)b.classList.add("correct");
+    else if(val!==null&&v===val)b.classList.add("wrong");
+    b.disabled=true;
+  });
+  if(val===answer){
+    var bonus=Math.round(timeLeft);
+    score+=10+bonus;
+    streak++;
+    correctCount++;
+    fb.textContent="✅ Correct! +"+(10+bonus)+" point";
+    fb.className="feedback ok";
+  }else{
+    streak=0;
+    fb.textContent=val===null?"⏰ Time up! Answer: "+answer:"❌ Wrong! Sahi uttor: "+answer;
+    fb.className="feedback bad";
+  }
+  scoreEl.textContent=score;
+  streakEl.textContent=streak;
+}
+function next(){
+  if(qNum>=totalQ)return finish();
+  qNum++;
+  showQuestion();
+}
+function finish(){
+  clearInterval(timer);
+  if(score>best){
+    best=score;
+    try{localStorage.setItem("gvp_math_best",String(best))}catch(e){}
+    bestEl.textContent=best;
+    ovTitle.textContent="🏆 Notun Best!";
+  }else{
+    ovTitle.textContent="🎉 Shesh!";
+  }
+  ovMsg.textContent="Score: "+score+" · "+correctCount+"/"+totalQ+" thik · Best: "+best;
+  ov.classList.add("show");
+}
+function restart(){
+  score=0;streak=0;qNum=1;correctCount=0;
+  scoreEl.textContent=0;streakEl.textContent=0;
+  ov.classList.remove("show");
+  showQuestion();
+}
+optsEl.addEventListener("click",function(e){
+  var b=e.target.closest(".opt");
+  if(!b)return;
+  pick(parseInt(b.dataset.v,10));
+});
+nextBtn.addEventListener("click",next);
+ovBtn.addEventListener("click",restart);
+document.querySelectorAll(".d-btn").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".d-btn").forEach(function(x){x.classList.remove("active")});
+    b.classList.add("active");
+    diff=b.dataset.d;
+    restart();
+  });
+});
+restart();
+})();
+</script>
+</body>
+</html>

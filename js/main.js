@@ -1,0 +1,332 @@
+"use strict";
+
+const GVP = (function () {
+
+  const CONFIG_KEY = "gvp_config";
+  const GAME_LIMIT_KEY = "gvp_plays";
+
+  function getConfig() {
+    try {
+      const saved = localStorage.getItem(CONFIG_KEY);
+      if (saved) return Object.assign({}, SITE_CONFIG, JSON.parse(saved));
+    } catch (e) {}
+    return Object.assign({}, SITE_CONFIG);
+  }
+
+  function saveConfig(cfg) {
+    try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
+  }
+
+  function toast(msg) {
+    let el = document.querySelector(".toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "toast";
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove("show"); }, 2600);
+  }
+
+  function initHeader() {
+    const burger = document.querySelector(".burger");
+    const links = document.querySelector(".nav-links");
+    if (burger && links) {
+      burger.addEventListener("click", function () {
+        links.classList.toggle("open");
+      });
+      links.addEventListener("click", function (e) {
+        if (e.target.tagName === "A") links.classList.remove("open");
+      });
+    }
+
+    const path = location.pathname.split("/").pop() || "index.html";
+    document.querySelectorAll(".nav-links a").forEach(function (a) {
+      const href = a.getAttribute("href");
+      if (!href) return;
+      const file = href.split("/").pop();
+      if (file === path || (path === "" && file === "index.html")) a.classList.add("active");
+    });
+  }
+
+  function initAnnouncement() {
+    const cfg = getConfig();
+    const bar = document.querySelector(".announce");
+    if (!bar) return;
+    if (cfg.announcementEnabled && cfg.announcement) {
+      bar.textContent = cfg.announcement;
+      bar.classList.add("show");
+    }
+  }
+
+  function basePath() {
+    const p = location.pathname.replace(/\\/g, "/");
+    if (/\/(pages|admin)(\/|$)/.test(p)) return "../";
+    return "./";
+  }
+
+  function playURL(id) {
+    return basePath() + "pages/play.html?id=" + encodeURIComponent(id);
+  }
+
+  function gameCardHTML(g) {
+    return '<article class="game-card">' +
+      '<div class="game-thumb" style="background:linear-gradient(135deg,' + g.color + '33,' + g.color + '14)">' + g.icon + '</div>' +
+      '<div class="game-body">' +
+      '<h3>' + g.title + '</h3>' +
+      '<p>' + g.description + '</p>' +
+      '<div class="game-meta"><span class="tag">' + g.players + '</span><span class="tag">' + g.tags.slice(0, 2).join(", ") + '</span></div>' +
+      '<a class="play-btn" href="' + playURL(g.id) + '">▶ KHELN</a>' +
+      '</div></article>';
+  }
+
+  function renderGames(targetId, list) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = '<div class="empty"><div class="big">🎮</div><p>Kono game pawa jacche na ekhon.</p></div>';
+      return;
+    }
+    el.innerHTML = list.map(gameCardHTML).join("");
+  }
+
+  function renderCategories(targetId) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    el.innerHTML = CATEGORIES.map(function (c) {
+      const count = getGamesByCategory(c.id).length;
+      return '<a class="cat-card" href="pages/games.html?cat=' + c.id + '">' +
+        '<span class="cat-count">' + count + ' GAMES</span>' +
+        '<div class="cat-icon">' + c.icon + '</div>' +
+        '<h3>' + c.title + '</h3><p>' + c.desc + '</p></a>';
+    }).join("");
+  }
+
+  function initHome() {
+    renderCategories("catGrid");
+    renderGames("featuredGrid", getFeaturedGames().slice(0, 8));
+    renderGames("latestGrid", GAMES.filter(function (g) { return g.enabled; }).slice(0, 4));
+    const stat = document.getElementById("statGames");
+    if (stat) stat.textContent = GAMES.filter(function (g) { return g.enabled; }).length;
+  }
+
+  function initGamesPage() {
+    const grid = document.getElementById("allGamesGrid");
+    if (!grid) return;
+    const params = new URLSearchParams(location.search);
+    let activeCat = params.get("cat") || "all";
+    const search = document.getElementById("gameSearch");
+
+    document.querySelectorAll(".filter-btn").forEach(function (b) {
+      if (b.dataset.cat === activeCat) b.classList.add("active");
+      b.addEventListener("click", function () {
+        document.querySelectorAll(".filter-btn").forEach(function (x) { x.classList.remove("active"); });
+        b.classList.add("active");
+        activeCat = b.dataset.cat;
+        apply();
+      });
+    });
+
+    function apply() {
+      const q = (search && search.value || "").trim().toLowerCase();
+      let list = GAMES.filter(function (g) { return g.enabled; });
+      if (activeCat !== "all") list = list.filter(function (g) { return g.category === activeCat; });
+      if (q) {
+        list = list.filter(function (g) {
+          return (g.title + " " + g.description + " " + g.tags.join(" ")).toLowerCase().indexOf(q) !== -1;
+        });
+      }
+      renderGames("allGamesGrid", list);
+      const c = document.getElementById("gameCount");
+      if (c) c.textContent = list.length;
+    }
+
+    if (search) search.addEventListener("input", apply);
+    apply();
+  }
+
+  function initGamePage() {
+    const wrap = document.getElementById("gamePlayArea");
+    if (!wrap) return;
+    const id = wrap.dataset.game;
+    const g = getGameById(id);
+    if (!g) {
+      wrap.innerHTML = '<div class="empty"><div class="big">😕</div><p>Ei game ti pawa jacche na.</p><a class="btn btn-primary" href="' + basePath() + 'pages/games.html" style="margin-top:14px">Shob Game Dekhun</a></div>';
+      return;
+    }
+    document.title = g.title + " — Play Free Online | " + SITE_CONFIG.name;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute("content", g.description + " — " + SITE_CONFIG.name + " theke free online kheln.");
+    injectGameSchema(g);
+    const t = document.getElementById("gameTitle");
+    if (t) t.innerHTML = g.icon + " " + g.title;
+    const d = document.getElementById("gameDesc");
+    if (d) d.textContent = g.description;
+    const ctrl = document.getElementById("gameControls");
+    if (ctrl) ctrl.textContent = "Controls: " + g.controls;
+    const pl = document.getElementById("gamePlayers");
+    if (pl) pl.textContent = g.players;
+    wrap.innerHTML = '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-fullscreen"></iframe>';
+
+    const share = document.getElementById("shareBtn");
+    if (share) {
+      share.addEventListener("click", function () {
+        const url = location.href;
+        if (navigator.share) {
+          navigator.share({ title: g.title, url: url }).catch(function () {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function () { toast("Link copy hoyeche!"); });
+        } else {
+          toast("URL bar theke link copy kore nen.");
+        }
+      });
+    }
+    const copy = document.getElementById("copyBtn");
+    if (copy) {
+      copy.addEventListener("click", function () {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(location.href).then(function () { toast("Link copy hoyeche!"); });
+        }
+      });
+    }
+
+    const rel = document.getElementById("relatedGrid");
+    if (rel) {
+      const related = GAMES.filter(function (x) { return x.enabled && x.id !== g.id; }).slice(0, 4);
+      renderGames("relatedGrid", related);
+    }
+    trackPlay();
+  }
+
+  let adsenseLoaded = false;
+  let lastAdPush = 0;
+
+  function loadAdsense(client) {
+    if (adsenseLoaded) return;
+    const s = document.createElement("script");
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + client;
+    document.head.appendChild(s);
+    adsenseLoaded = true;
+  }
+
+  function isRealClient(id) {
+    return !!id && /^ca-pub-\d{16}$/.test(String(id).trim());
+  }
+
+  function isRealSlot(id) {
+    return !!id && /^\d+$/.test(String(id).trim());
+  }
+
+  function initAds() {
+    const cfg = getConfig();
+    const slots = document.querySelectorAll(".ad-slot");
+    if (!cfg.adsEnabled || !isRealClient(cfg.adsenseClient)) {
+      slots.forEach(function (el) {
+        if (!cfg.adsEnabled) el.style.display = "none";
+        else {
+          const inner = el.querySelector(".ad-inner");
+          if (inner) inner.innerHTML = '<div class="ad-placeholder">📢 Ad slot ready — admin control panel theke AdSense Client ID ar Slot ID set korle ekhane ad cholbe.</div>';
+        }
+      });
+      return;
+    }
+
+    loadAdsense(cfg.adsenseClient.trim());
+
+    const slotFor = function (el) {
+      if (el.classList.contains("ad-top")) return cfg.adsenseSlotTop;
+      if (el.classList.contains("ad-mid")) return cfg.adsenseSlotMid;
+      return cfg.adsenseSlotBottom || cfg.adsenseSlotMid || cfg.adsenseSlotTop;
+    };
+
+    const minGap = (Number(cfg.minSecondsBetweenAds) || 0) * 1000;
+
+    const pushAd = function (slotEl) {
+      if (slotEl.dataset.adPushed === "1") return;
+      const now = Date.now();
+      if (minGap > 0 && now - lastAdPush < minGap) {
+        setTimeout(function () { pushAd(slotEl); }, minGap - (now - lastAdPush));
+        return;
+      }
+      const ins = slotEl.querySelector("ins.adsbygoogle");
+      if (!ins) return;
+      ins.setAttribute("data-ad-client", cfg.adsenseClient.trim());
+      const slotId = isRealSlot(slotFor(slotEl)) ? slotFor(slotEl).trim() : "";
+      if (slotId) ins.setAttribute("data-ad-slot", slotId);
+      ins.setAttribute("data-ad-format", "auto");
+      ins.setAttribute("data-full-width-responsive", "true");
+      slotEl.dataset.adPushed = "1";
+      lastAdPush = now;
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {}
+    };
+
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            pushAd(entry.target);
+            io.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: "200px" });
+      slots.forEach(function (s) { io.observe(s); });
+    } else {
+      slots.forEach(pushAd);
+    }
+  }
+
+  function injectGameSchema(g) {
+    try {
+      const s = document.createElement("script");
+      s.type = "application/ld+json";
+      s.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": g.title,
+        "description": g.description,
+        "genre": g.category === "educational" ? "Educational" : "Arcade",
+        "gamePlatform": "Web browser",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": SITE_CONFIG.name }
+      });
+      document.head.appendChild(s);
+    } catch (e) {}
+  }
+
+  function trackPlay() {
+    try {
+      const now = Date.now();
+      let data = { count: 0, last: 0 };
+      try { data = JSON.parse(localStorage.getItem(GAME_LIMIT_KEY)) || data; } catch (e) {}
+      data.count = (data.count || 0) + 1;
+      data.last = now;
+      localStorage.setItem(GAME_LIMIT_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initHeader();
+    initAnnouncement();
+    initHome();
+    initGamesPage();
+    initGamePage();
+    initAds();
+    document.querySelectorAll("[data-site-name]").forEach(function (el) { el.textContent = SITE_CONFIG.name; });
+    document.querySelectorAll("[data-year]").forEach(function (el) { el.textContent = new Date().getFullYear(); });
+  });
+
+  return {
+    getConfig: getConfig,
+    saveConfig: saveConfig,
+    toast: toast,
+    renderGames: renderGames,
+    trackPlay: trackPlay
+  };
+})();

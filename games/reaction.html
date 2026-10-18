@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Rush</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700}
+.pill b{color:#22d3ee}
+.arena{
+  width:min(92vw,480px);
+  height:min(56vh,320px);
+  border-radius:20px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+  transition:background .08s;
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 16px 40px rgba(0,0,0,.45);
+  padding:20px;
+}
+.arena.idle{background:#1c2752}
+.arena.wait{background:#7f1d1d}
+.arena.go{background:#15803d}
+.arena.early{background:#92400e}
+.arena h2{font-size:clamp(22px,5vw,34px);margin-bottom:6px}
+.arena p{color:rgba(255,255,255,.85);font-size:15px}
+.arena .ms{font-size:clamp(40px,10vw,64px);font-weight:800;letter-spacing:1px}
+.modes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.mode-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#9aa7d0;padding:9px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.mode-btn.active{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border-color:transparent}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:11px 26px;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer}
+.rounds{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:34px}
+.round-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:6px 13px;border-radius:999px;font-size:13px;font-weight:700}
+.round-chip.best{color:#22d3ee}
+.round-chip.bad{color:#f59e0b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="modes">
+    <button class="mode-btn active" data-m="classic">⚡ Classic Reaction</button>
+    <button class="mode-btn" data-m="streak">🔥 Streak Mode</button>
+  </div>
+  <div class="pill-row">
+    <div class="pill">Round: <b id="round">0</b>/5</div>
+    <div class="pill">Avg: <b id="avg">—</b></div>
+    <div class="pill">Best Avg: <b id="best">—</b></div>
+    <div class="pill">Streak: <b id="streak">0</b>🔥</div>
+  </div>
+  <div class="arena idle" id="arena">
+    <div id="arenaInner">
+      <h2>⚡ Reaction Rush</h2>
+      <p>Green hoye gele turant click/tap korun — koto druto react korte paren?</p>
+    </div>
+  </div>
+  <div class="rounds" id="rounds"></div>
+  <button class="btn" id="startBtn">▶ Suru Korun</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var arena=document.getElementById("arena"),inner=document.getElementById("arenaInner");
+var roundEl=document.getElementById("round"),avgEl=document.getElementById("avg"),bestEl=document.getElementById("best"),streakEl=document.getElementById("streak");
+var roundsEl=document.getElementById("rounds"),startBtn=document.getElementById("startBtn");
+var state="idle",round=1,total=5,times=[],waitTimer=null,goTime=0,currentStreak=0,mode="classic",bestAvg=null;
+try{bestAvg=parseInt(localStorage.getItem("gvp_reaction_best"))||null}catch(e){}
+bestEl.textContent=bestAvg?bestAvg+"ms":"—";
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function setArena(cls,html){
+  arena.className="arena "+cls;
+  inner.innerHTML=html;
+}
+function renderRounds(){
+  roundsEl.innerHTML=times.map(function(t,i){
+    var cls="round-chip";
+    if(state==="done"&&t!==null){
+      if(bestAvg&&t<bestAvg)cls+=" best";
+      else if(t>500)cls+=" bad";
+    }
+    return '<span class="'+cls+'">R'+(i+1)+": "+(t===null?"—":t+"ms")+'</span>';
+  }).join("");
+}
+function updateAvg(){
+  if(!times.length){avgEl.textContent="—";return;}
+  var sum=0;
+  for(var i=0;i<times.length;i++)sum+=times[i];
+  avgEl.textContent=Math.round(sum/times.length)+"ms";
+}
+function startRound(){
+  state="wait";
+  roundEl.textContent=round;
+  setArena("wait","<h2>⏳ Opekha korun...</h2><p>Green na howa porjonto click korben NA — premature click hole early dhora hobe!</p>");
+  waitTimer=setTimeout(function(){
+    state="go";
+    setArena("go","<h2 class=\"ms\">GO!</h2><p>Ekhone click/tap korun!</p>");
+    goTime=performance.now();
+  },rnd(1200,3200));
+}
+function onAction(){
+  if(state==="idle"||state==="done")return;
+  if(state==="wait"){
+    clearTimeout(waitTimer);
+    state="early";
+    times.push(null);
+    currentStreak=0;
+    streakEl.textContent=0;
+    setArena("early","<h2>Early click!</h2><p>Green howar age click kore felsen. Ei round count hoyni — abar cheshta korun.</p>");
+    setTimeout(function(){
+      if(round<total){round++;startRound();}
+      else finish();
+    },1200);
+    renderRounds();
+    return;
+  }
+  if(state==="go"){
+    var ms=Math.round(performance.now()-goTime);
+    times.push(ms);
+    currentStreak++;
+    streakEl.textContent=currentStreak;
+    state="result";
+    var rating=ms<200?"🚀 Dhuronto!":ms<300?"👍 Bhalo":ms<450?"🙂 Thik ache":"🐢 Aste...";
+    setArena("idle","<h2 class=\"ms\">"+ms+"ms</h2><p>"+rating+"</p>");
+    renderRounds();
+    updateAvg();
+    setTimeout(function(){
+      if(round<total){round++;startRound();}
+      else finish();
+    },1100);
+  }
+}
+function finish(){
+  state="done";
+  var valid=times.filter(function(t){return t!==null;});
+  if(!valid.length){
+    setArena("idle","<h2>😿 Kono valid round hoyni</h2><p>Early click royeche. Abar cheshta korun!</p>");
+  }else{
+    var sum=0;
+    for(var i=0;i<valid.length;i++)sum+=valid[i];
+    var av=Math.round(sum/valid.length);
+    var title="🎉 Shesh!",extra="";
+    if(mode==="streak"){
+      title=currentStreak>=total?"🔥 Perfect Streak!":currentStreak>0?"🔥 Streak: "+currentStreak:"😿 Shuru tei bhul";
+      extra=" · Best possible streak: "+total;
+    }
+    if(!bestAvg||av<bestAvg){
+      bestAvg=av;
+      try{localStorage.setItem("gvp_reaction_best",String(av))}catch(e){}
+      bestEl.textContent=av+"ms";
+      title="🏆 Notun Best! "+av+"ms";
+    }
+    setArena("idle","<h2>"+title+"</h2><p>Average: "+av+"ms · Valid rounds: "+valid.length+"/"+total+extra+"</p>");
+  }
+  startBtn.style.display="inline-flex";
+  startBtn.textContent="▶ Abar Kheln";
+  renderRounds();
+}
+function restart(){
+  clearTimeout(waitTimer);
+  round=1;times=[];currentStreak=0;
+  streakEl.textContent=0;
+  roundEl.textContent=0;
+  avgEl.textContent="—";
+  startBtn.style.display="none";
+  renderRounds();
+  startRound();
+}
+startBtn.addEventListener("click",restart);
+arena.addEventListener("click",onAction);
+document.addEventListener("keydown",function(e){
+  if(e.key===" "||e.key==="Enter"){
+    e.preventDefault();
+    if(state==="idle"||state==="done")restart();
+    else onAction();
+  }
+},{passive:false});
+document.querySelectorAll(".mode-btn").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".mode-btn").forEach(function(x){x.classList.remove("active")});
+    b.classList.add("active");
+    mode=b.dataset.m;
+  });
+});
+renderRounds();
+})();
+</script>
+</body>
+</html>

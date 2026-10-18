@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Game | KhairPlay</title>
+  <meta name="description" content="Game kheln ekhon-e — free, fast ar smooth.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <div class="announce"></div>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a class="logo" href="../index.html">
+        <span class="logo-icon">🎮</span>
+        <span data-site-name>KhairPlay</span>
+      </a>
+      <button class="burger" aria-label="Menu">☰</button>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="games.html">All Games</a></li>
+        <li><a href="games.html?cat=kids">Kids</a></li>
+        <li><a href="games.html?cat=educational">Educational</a></li>
+        <li><a href="games.html?cat=adult">Challenge</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a class="nav-cta" href="games.html">▶ KHELUN</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="play-wrap">
+    <div class="container">
+      <div class="play-head">
+        <h1 id="gameTitle">🎮 Game</h1>
+        <a class="back-link" href="games.html">← Pichone</a>
+      </div>
+
+      <div class="game-frame-box" id="gamePlayArea"></div>
+
+      <div class="game-info-bar">
+        <div>
+          <span id="gamePlayers">1 Player</span> &nbsp;·&nbsp;
+          <span class="controls-hint" id="gameControls">Controls: —</span>
+        </div>
+        <div class="share-row">
+          <button id="shareBtn">🔗 Share</button>
+          <button id="copyBtn">📋 Copy Link</button>
+        </div>
+      </div>
+
+      <p id="gameDesc" style="color:var(--muted);max-width:960px;margin:14px auto 0;font-size:14px"></p>
+
+      <div class="ad-slot ad-responsive ad-bottom" style="max-width:960px">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-inner"><ins class="adsbygoogle" style="display:block"></ins></div>
+      </div>
+
+      <div class="section-head" style="margin-top:10px">
+        <h2>➡️ Aro Games</h2>
+        <a href="games.html">Shob dekhun →</a>
+      </div>
+      <div class="game-grid" id="relatedGrid"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:0;margin-top:0">
+        © <span data-year></span> <span data-site-name>KhairPlay</span>. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/games-data.js"></script>
+  <script src="../js/main.js"></script>
+  <script>
+    (function () {
+      var area = document.getElementById("gamePlayArea");
+      var params = new URLSearchParams(location.search);
+      var id = params.get("id") || "";
+      area.dataset.game = id;
+    })();
+  </script>
+</body>
+</html>
