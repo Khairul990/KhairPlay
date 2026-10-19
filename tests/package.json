@@ -1,0 +1,14 @@
+{
+  "name": "playnova-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local-only QA harness for PlayNova (not deployed)",
+  "scripts": {
+    "audit": "node audit.js",
+    "smoke": "node browser-test.js",
+    "test": "node audit.js && node browser-test.js"
+  },
+  "dependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}
