@@ -476,7 +476,15 @@ const GVP = (function () {
     if (pl) pl.textContent = g.players;
     wrap.innerHTML =
       '<div class="frame-skeleton"><div class="sk-spinner"></div><div class="sk-text">Game load hocche...</div></div>' +
-      '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups"></iframe>';
+      '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups"></iframe>' +
+      '<button class="fs-exit" type="button" id="fsExit">✕ Exit Fullscreen</button>';
+    const fsExit = document.getElementById("fsExit");
+    if (fsExit) {
+      fsExit.addEventListener("click", function () {
+        const p = document.exitFullscreen || document.webkitExitFullscreen;
+        if (p) { const r = p.call(document); if (r && r.catch) r.catch(function () {}); }
+      });
+    }
     const iframe = wrap.querySelector("iframe");
     if (iframe) {
       iframe.addEventListener("load", function () {
@@ -505,6 +513,57 @@ const GVP = (function () {
         refreshFavButtons(g.id);
         toast(now ? "♥ " + g.title + " favourites-e add" : "Favourites theke soriye dewa holo");
       });
+    }
+
+    const frameBox = document.getElementById("gamePlayArea");
+    const skeletonHTML = '<div class="frame-skeleton"><div class="sk-spinner"></div><div class="sk-text">Game load hocche...</div></div>';
+
+    const restartBtn = document.getElementById("restartBtn");
+    if (restartBtn) {
+      restartBtn.addEventListener("click", function () {
+        const iframe = frameBox && frameBox.querySelector("iframe");
+        if (!iframe) return;
+        const old = frameBox.querySelector(".frame-skeleton");
+        if (old) old.remove();
+        frameBox.insertAdjacentHTML("afterbegin", skeletonHTML);
+        let reloaded = false;
+        try {
+          const win = iframe.contentWindow;
+          if (win && win.location && win.location.href) { win.location.reload(); reloaded = true; }
+        } catch (e) {}
+        if (!reloaded) iframe.src = iframe.src;
+        toast("Game abar shuru hocche...");
+      });
+    }
+
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const playerNote = document.getElementById("playerNote");
+    if (fullscreenBtn) {
+      const box = frameBox;
+      const supported = !!(document.fullscreenEnabled ||
+        (document.webkitFullscreenEnabled !== undefined && document.webkitFullscreenEnabled));
+      const canRequest = box && (box.requestFullscreen || box.webkitRequestFullscreen);
+      if (!supported || !canRequest) {
+        fullscreenBtn.disabled = true;
+        fullscreenBtn.title = "Ei browser-e fullscreen available na";
+        fullscreenBtn.setAttribute("aria-disabled", "true");
+        if (playerNote) playerNote.textContent = "Ei browser-e fullscreen support kore na.";
+      } else {
+        fullscreenBtn.addEventListener("click", function () {
+          const inFull = document.fullscreenElement || document.webkitFullscreenElement;
+          if (inFull) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            return;
+          }
+          const p = (box.requestFullscreen || box.webkitRequestFullscreen).call(box);
+          if (p && p.catch) p.catch(function () { toast("Fullscreen khola jabe ni."); });
+        });
+        document.addEventListener("fullscreenchange", function () {
+          const on = !!document.fullscreenElement;
+          fullscreenBtn.setAttribute("aria-pressed", String(on));
+          fullscreenBtn.innerHTML = on ? "&#x26F6; Exit Fullscreen" : "&#x26F6; Fullscreen";
+        });
+      }
     }
 
     const share = document.getElementById("shareBtn");

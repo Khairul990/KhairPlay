@@ -395,6 +395,79 @@ function readGameRegistry() {
     await page.close();
   }
 
+  /* ---------- 9. PLAYER CONTROLS ---------- */
+  console.log('\n[9] player controls (restart / fullscreen)');
+  {
+    const page = await browser.newPage();
+    await attach(page, 'player');
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.goto(BASE + '/pages/play.html?id=2048', { waitUntil: 'networkidle2', timeout: 45000 });
+    await page.waitForSelector('#gamePlayArea iframe', { timeout: 15000 });
+    await new Promise((r) => setTimeout(r, 1200));
+
+    const restart = await page.$('#restartBtn');
+    const full = await page.$('#fullscreenBtn');
+    if (restart) ok('restart control present'); else bad('#restartBtn missing');
+    if (full) ok('fullscreen control present'); else bad('#fullscreenBtn missing');
+
+    const before = await page.$eval('#gamePlayArea iframe', (e) => ({ src: e.src, len: document.body.innerHTML.length }));
+    if (restart) {
+      await page.click('#restartBtn');
+      await new Promise((r) => setTimeout(r, 1800));
+      const after = await page.evaluate(() => {
+        const f = document.querySelector('#gamePlayArea iframe');
+        if (!f) return { gone: true };
+        const fr = f.contentDocument;
+        return { src: f.src, len: fr && fr.body ? fr.body.innerHTML.length : -1, skeleton: !!document.querySelector('.frame-skeleton') };
+      });
+      if (after.gone) bad('restart removed the iframe');
+      else if (after.len > 50) ok(`restart reloads game (content ${after.len}b, skeleton cleared=${!after.skeleton})`);
+      else bad(`restart left game blank (len=${after.len})`);
+      if (after.src !== before.src) warn(`restart changed iframe src (${before.src} -> ${after.src})`);
+    }
+
+    if (full) {
+      const state = await page.$eval('#fullscreenBtn', (b) => ({ disabled: b.disabled, ad: b.getAttribute('aria-disabled') }));
+      if (state.disabled) {
+        ok('fullscreen correctly disabled in this environment (feature-detected)');
+      } else {
+        await page.click('#fullscreenBtn');
+        await new Promise((r) => setTimeout(r, 700));
+        const fs = await page.evaluate(() => !!(document.fullscreenElement || document.webkitFullscreenElement));
+        if (fs) {
+          ok('fullscreen request succeeds');
+          const visible = await page.evaluate(() => {
+            const b = document.getElementById('fsExit');
+            if (!b) return { exists: false };
+            const r = b.getBoundingClientRect();
+            const st = getComputedStyle(b);
+            return { exists: true, shown: st.display !== 'none' && r.width > 0, w: Math.round(r.width) };
+          });
+          if (visible.exists && visible.shown) ok('in-frame "Exit Fullscreen" control is visible while fullscreen');
+          else bad(`in-frame exit control not usable: ${JSON.stringify(visible)}`);
+
+          await page.evaluate(() => document.getElementById('fsExit').click());
+          await new Promise((r) => setTimeout(r, 900));
+          const exited = await page.evaluate(() => !document.fullscreenElement);
+          if (exited) ok('in-frame exit control leaves fullscreen');
+          else bad('in-frame exit control did not leave fullscreen');
+        } else {
+          warn('fullscreen API did not engage in headless Chrome (browser-dependent)');
+        }
+      }
+    }
+
+    // game must still be interactive after restart
+    const stillAlive = await page.evaluate(() => {
+      const f = document.querySelector('#gamePlayArea iframe');
+      return !!(f && f.contentDocument && f.contentDocument.querySelector('canvas, button, [role="button"]'));
+    });
+    if (stillAlive) ok('game still interactive after restart');
+    else warn('game interactive target not found after restart');
+
+    await page.close();
+  }
+
   await browser.close();
   server.close();
 
