@@ -1,6 +1,6 @@
 "use strict";
 /* PlayNova service worker — cache-first static shell, network-first navigation */
-const CACHE = "playnova-v4";
+const CACHE = "playnova-v5";
 const CORE = [
   ".",
   "index.html",
@@ -8,6 +8,7 @@ const CORE = [
   "css/style.css",
   "js/games-data.js",
   "js/main.js",
+  "js/progress.js",
   "manifest.json",
   "public/brand/favicon.svg",
   "public/brand/playnova-icon.svg",
