@@ -1,6 +1,6 @@
 "use strict";
 /* PlayNova service worker — cache-first static shell, network-first navigation */
-const CACHE = "playnova-v5";
+const CACHE = "playnova-v6";
 const CORE = [
   ".",
   "index.html",
