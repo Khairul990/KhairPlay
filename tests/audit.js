@@ -178,6 +178,54 @@ if (exists('sitemap.xml')) {
 if (/adsEnabled\s*:\s*true/.test(gd)) warn('adsEnabled is true');
 else ok('ads disabled (as documented)');
 
+/* ---------- 9. SEO consistency ---------- */
+/* every game page must carry an h1 and a canonical aimed at the play page
+   that embeds it (these were all missing before; don't let them regress) */
+for (const e of entries) {
+  const gfile = path.join(ROOT, e.iframe.replace(/\//g, path.sep));
+  const rel = e.iframe.replace(/\\/g, '/');
+  if (!fs.existsSync(gfile)) continue; /* already failed above */
+  const html = fs.readFileSync(gfile, 'utf8');
+  if (!/<h1[\s>]/i.test(html)) fail(`${rel}: no <h1>`);
+  const canon = (html.match(/<link rel="canonical" href="([^"]*)"/) || [])[1];
+  if (!canon) fail(`${rel}: no canonical`);
+  else if (!canon.includes(`/pages/play.html?id=${e.id}`)) {
+    fail(`${rel}: canonical "${canon}" does not target play.html?id=${e.id}`);
+  }
+}
+if (entries.length) ok(`game pages: h1 + canonical checked for ${entries.length} games`);
+
+/* the play page itself must be canonicalised (it is the indexable target) */
+if (exists(path.join('pages', 'play.html'))) {
+  const ph = read(path.join('pages', 'play.html'));
+  const pcanon = (ph.match(/<link rel="canonical" href="([^"]*)"/) || [])[1];
+  if (!pcanon || !/^https?:\/\//.test(pcanon)) fail(`pages/play.html: missing absolute canonical`);
+  else ok('pages/play.html: canonical absolute');
+}
+
+/* sitemap must list every enabled registry game */
+if (exists('sitemap.xml')) {
+  const smLocs = [...read('sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map((x) => x[1]);
+  const covered = new Set(
+    smLocs.map((l) => (l.match(/[?&]id=([a-z0-9-]+)/) || [])[1]).filter(Boolean)
+  );
+  const missing = entries.filter((e) => !covered.has(e.id)).map((e) => e.id);
+  if (missing.length) fail(`sitemap missing game ids: ${missing.join(', ')}`);
+  else ok(`sitemap covers all ${entries.length} registry games`);
+}
+
+/* any og:image pointing at our own origin must exist on disk.
+   this is what caught the production 404 on share-card.png. */
+for (const f of htmlFiles) {
+  const rel = path.relative(ROOT, f).replace(/\\/g, '/');
+  const html = fs.readFileSync(f, 'utf8');
+  const ogimg = (html.match(/<meta property="og:image" content="([^"]*)"/) || [])[1];
+  if (!ogimg || !ogimg.startsWith(SITE + '/')) continue;
+  const disk = ogimg.slice(SITE.length + 1).split('?')[0].replace(/\//g, path.sep);
+  if (!exists(disk)) fail(`${rel}: og:image points to missing file ${ogimg}`);
+}
+ok('og:image targets checked against disk');
+
 /* ---------- report ---------- */
 const pad = (s) => '  ' + s;
 console.log(`\n=== PlayNova audit ===`);

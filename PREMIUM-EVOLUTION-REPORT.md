@@ -20,6 +20,19 @@ Sections covered by the browser suite: header/nav, search + deep links, **every 
 
 The 5 remaining audit warnings are intentional, not defects: `404.html` has no canonical (it is `noindex`, so a canonical would contradict it) and 4 `innerHTML` sink review notes for code that only ever receives registry data or escaped values.
 
+### Regression guards added to the audit
+
+Four checks that would have caught the defects found during this work, each verified to fail when the condition is broken (not just pass vacuously):
+
+| Check | Negative test |
+|-------|---------------|
+| Every game page has an `<h1>` and a canonical aimed at `play.html?id=` | stripped the `<h1>` from `slide-puzzle.html` → **FAIL** |
+| `pages/play.html` has an absolute canonical | rewritten to `./play.html` → **FAIL** |
+| Sitemap lists every enabled registry game | removed the `lights-out` URL → **FAIL** |
+| Any same-origin `og:image` exists on disk | pointed one at `nope-card.png` → **FAIL** |
+
+The last one is what would have caught the production `share-card.png` 404 before it shipped.
+
 ### A test bug that was found and fixed
 
 The audit parsed `games-data.js` with one lazy regex over the whole `GAMES` array. Because the `thumb` capture group was optional and the quantifiers lazy, `thumb` never matched for **any** entry — every game reported "has no thumb", and a genuinely missing thumbnail was indistinguishable from the noise. Confirmed by deleting `thumb-snake.svg` (audit failed) and restoring it (audit passed). Warnings dropped 29 → 5.
