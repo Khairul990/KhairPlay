@@ -19,6 +19,11 @@
   <url><loc>https://khairplay.vercel.app/pages/play.html?id=hangman</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://khairplay.vercel.app/pages/play.html?id=connect4</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://khairplay.vercel.app/pages/play.html?id=whack</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://khairplay.vercel.app/pages/play.html?id=space-shooter</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://khairplay.vercel.app/pages/play.html?id=runner</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://khairplay.vercel.app/pages/play.html?id=racing</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://khairplay.vercel.app/pages/play.html?id=platformer</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://khairplay.vercel.app/pages/play.html?id=tower-defense</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://khairplay.vercel.app/pages/about.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://khairplay.vercel.app/pages/contact.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://khairplay.vercel.app/pages/privacy.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>

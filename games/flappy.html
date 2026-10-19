@@ -231,7 +231,7 @@ document.addEventListener("visibilitychange",function(){
   if(document.hidden&&started&&!dead)paused=true;
 });
 canvas.addEventListener("mousedown",flap);
-document.addEventListener("touchstart",function(e){e.preventDefault();flap()},{passive:false});
+document.addEventListener("touchstart",function(e){if(e.target.closest("button"))return;e.preventDefault();flap()},{passive:false});
 restartBtn.addEventListener("click",reset);
 ovBtn.addEventListener("click",reset);
 reset();

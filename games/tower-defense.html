@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tower Defense</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px}
+.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700}
+.pill b{color:#22d3ee}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:9px 20px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.btn.ghost{background:rgba(255,255,255,.08);color:#eef2ff;border:1px solid rgba(255,255,255,.15)}
+.btn:disabled{opacity:.45;cursor:default}
+canvas{border:1px solid rgba(255,255,255,.12);border-radius:12px;max-width:100%;height:auto;box-shadow:0 12px 34px rgba(0,0,0,.5);cursor:pointer}
+.hint{font-size:12px;color:#9aa7d0;text-align:center;max-width:520px}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0}
+.shop{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tw{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#9aa7d0;padding:8px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.tw.active{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border-color:transparent}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div class="pill">Wave: <b id="wave">0</b></div>
+    <div class="pill">Gold: <b id="gold">80</b></div>
+    <div class="pill">Lives: <b id="lives">❤❤❤❤❤</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+    <button class="btn ghost" id="pauseBtn">⏸ Pause</button>
+    <button class="btn" id="restartBtn">↻ Restart</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="shop">
+    <button class="tw active" id="twBasic" data-t="basic">🔫 Gun (50g)</button>
+    <button class="tw" id="twSniper" data-t="sniper">🎯 Sniper (90g)</button>
+    <button class="btn" id="waveBtn">▶ Wave Shuru</button>
+  </div>
+  <div class="hint">Faka (path-charha) box-e click kore tower bosan · Tower-gulo apnake nijei guli chharbey · Wave shuru korle enemy ashbe!</div>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">😿 Game Over</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var CELL=40,COLS=11,ROWS=11;
+var W=CELL*COLS,H=CELL*ROWS;
+var canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+var waveEl=document.getElementById("wave"),goldEl=document.getElementById("gold"),livesEl=document.getElementById("lives"),bestEl=document.getElementById("best");
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var ovBtn=document.getElementById("ovBtn"),restartBtn=document.getElementById("restartBtn"),pauseBtn=document.getElementById("pauseBtn"),waveBtn=document.getElementById("waveBtn");
+var dpr=Math.min(window.devicePixelRatio||1,2);
+canvas.width=W*dpr;canvas.height=H*dpr;
+canvas.style.width="min(92vw,440px)";canvas.style.height="auto";
+ctx.scale(dpr,dpr);
+var PATH_CELLS={};
+(function(){
+  var segs=[
+    [[0,1],[8,1]],[[8,1],[8,5]],[[8,5],[2,5]],[[2,5],[2,9]],[[2,9],[10,9]]
+  ];
+  var pts=[];
+  for(var s=0;s<segs.length;s++){
+    var a=segs[s][0],b=segs[s][1];
+    var dc=Math.sign(b[0]-a[0]),dr=Math.sign(b[1]-a[1]);
+    var c=a[0],r=a[1];
+    while(c!==b[0]||r!==b[1]){
+      PATH_CELLS[c+","+r]=true;
+      if(pts.length===0||pts[pts.length-1].c!==c||pts[pts.length-1].r!==r)pts.push({c:c,r:r});
+      c+=dc;r+=dr;
+    }
+    PATH_CELLS[c+","+r]=true;
+    pts.push({c:c,r:r});
+  }
+  window.__waypoints=pts.map(function(p){return {x:p.c*CELL+CELL/2,y:p.r*CELL+CELL/2};});
+})();
+var TOWER_TYPES={
+  basic:{cost:50,range:96,dmg:1,cd:22,color:"#22d3ee"},
+  sniper:{cost:90,range:150,dmg:3,cd:48,color:"#a855f7"}
+};
+var towers,enemies,shots,gold,waves,best=0,lives,running=false,paused=false,over=false,frame=0,spawnQueue,spawnT,selected="basic";
+try{best=parseInt(localStorage.getItem("gvp_td_best"))||0}catch(e){}
+bestEl.textContent=best;
+var AC=null;
+function snd(freq,dur,vol){try{if(!AC){var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A()}if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=freq;o.connect(g);g.connect(AC.destination);var t=AC.currentTime;g.gain.setValueAtTime(vol||0.04,t);g.gain.exponentialRampToValueAtTime(0.001,t+(dur||0.07));o.start(t);o.stop(t+(dur||0.07)+0.02)}catch(e){}}
+function reset(){
+  towers=[];enemies=[];shots=[];
+  gold=80;waves=0;lives=5;frame=0;over=false;paused=false;
+  spawnQueue=0;spawnT=0;
+  goldEl.textContent=gold;waveEl.textContent=0;livesEl.textContent="❤❤❤❤❤";bestEl.textContent=best;
+  waveBtn.disabled=false;
+  ov.classList.remove("show");
+  pauseBtn.textContent="⏸ Pause";
+  running=true;
+  draw();
+}
+function startWave(){
+  if(!running||paused||over||spawnQueue>0)return;
+  waves++;
+  waveEl.textContent=waves;
+  spawnQueue=4+waves*2;
+  spawnT=0;
+  waveBtn.disabled=true;
+  snd(520,0.12,0.04);
+}
+function spawnEnemy(){
+  var hp=3+waves*2;
+  enemies.push({wx:0,wp:0,x:window.__waypoints[0].x,y:window.__waypoints[0].y,hp:hp,maxHp:hp,speed:0.75+waves*0.05,reward:6+waves});
+}
+function moveEnemy(e){
+  var wp=window.__waypoints;
+  var target=wp[e.wp+1];
+  if(!target){e.done=true;return;}
+  var dx=target.x-e.x,dy=target.y-e.y;
+  var d=Math.sqrt(dx*dx+dy*dy);
+  if(d<e.speed){e.x=target.x;e.y=target.y;e.wp++;}
+  else{e.x+=dx/d*e.speed;e.y+=dy/d*e.speed;}
+}
+function placeTower(mx,my){
+  var c=Math.floor(mx/CELL),r=Math.floor(my/CELL);
+  if(c<0||r<0||c>=COLS||r>=ROWS)return;
+  if(PATH_CELLS[c+","+r])return;
+  for(var i=0;i<towers.length;i++)if(towers[i].c===c&&towers[i].r===r)return;
+  var t=TOWER_TYPES[selected];
+  if(gold<t.cost)return;
+  gold-=t.cost;
+  goldEl.textContent=gold;
+  towers.push({c:c,r:r,type:selected,x:c*CELL+CELL/2,y:r*CELL+CELL/2,cd:0});
+  snd(620,0.08,0.04);
+}
+function step(){
+  if(!running||paused||over)return;
+  frame++;
+  var i,j;
+  if(spawnQueue>0){
+    spawnT--;
+    if(spawnT<=0){spawnEnemy();spawnQueue--;spawnT=32;}
+  }
+  for(i=enemies.length-1;i>=0;i--){
+    var e=enemies[i];
+    moveEnemy(e);
+    if(e.done){
+      enemies.splice(i,1);
+      lives--;
+      livesEl.textContent=lives>0?"❤".repeat(lives):"—";
+      snd(140,0.2,0.055);
+      if(lives<=0){over=true;running=false;endGame();return;}
+    }
+  }
+  for(i=0;i<towers.length;i++){
+    var tw=towers[i];
+    if(tw.cd>0){tw.cd--;continue;}
+    var conf=TOWER_TYPES[tw.type];
+    var bestE=null,bd=1e9;
+    for(j=0;j<enemies.length;j++){
+      var en=enemies[j];
+      var dd=Math.hypot(en.x-tw.x,en.y-tw.y);
+      if(dd<conf.range&&dd<bd){bd=dd;bestE=en;}
+    }
+    if(bestE){
+      shots.push({x:tw.x,y:tw.y,target:bestE,dmg:conf.dmg,color:conf.color,speed:5.2});
+      tw.cd=conf.cd;
+    }
+  }
+  for(i=shots.length-1;i>=0;i--){
+    var sh=shots[i];
+    if(enemies.indexOf(sh.target)===-1){shots.splice(i,1);continue;}
+    var dx=sh.target.x-sh.x,dy=sh.target.y-sh.y;
+    var d=Math.hypot(dx,dy);
+    if(d<sh.speed){
+      sh.target.hp-=sh.dmg;
+      if(sh.target.hp<=0){
+        gold+=sh.target.reward;
+        goldEl.textContent=gold;
+        enemies.splice(enemies.indexOf(sh.target),1);
+        snd(880,0.05,0.035);
+      }
+      shots.splice(i,1);
+    }else{
+      sh.x+=dx/d*sh.speed;
+      sh.y+=dy/d*sh.speed;
+    }
+  }
+  if(spawnQueue<=0&&!enemies.length&&waveBtn.disabled&&running){
+    waveBtn.disabled=false;
+    var bonus=20+waves*5;
+    gold+=bonus;
+    goldEl.textContent=gold;
+    if(waves>best){best=waves;try{localStorage.setItem("gvp_td_best",String(best))}catch(e){}bestEl.textContent=best;}
+  }
+}
+function endGame(){
+  ovTitle.textContent=waves>=best&&waves>0?"🏆 Notun Record!":"😿 Game Over";
+  ovMsg.textContent="Wave: "+waves+" · Best: "+best;
+  ov.classList.add("show");
+}
+function draw(){
+  ctx.fillStyle="#0a0f1f";
+  ctx.fillRect(0,0,W,H);
+  for(var c=0;c<COLS;c++){
+    for(var r=0;r<ROWS;r++){
+      var isPath=PATH_CELLS[c+","+r];
+      ctx.fillStyle=isPath?"#1b2740":"#111834";
+      ctx.fillRect(c*CELL+1,r*CELL+1,CELL-2,CELL-2);
+      if(isPath){
+        ctx.fillStyle="rgba(34,211,238,.09)";
+        ctx.fillRect(c*CELL+6,r*CELL+6,CELL-12,CELL-12);
+      }
+    }
+  }
+  var sx=window.__waypoints[0].x,sy=window.__waypoints[0].y;
+  ctx.fillStyle="rgba(34,197,94,.35)";
+  ctx.fillRect(sx-14,sy-14,28,28);
+  ctx.fillStyle="rgba(239,68,68,.35)";
+  var ex=window.__waypoints[window.__waypoints.length-1].x,ey=window.__waypoints[window.__waypoints.length-1].y;
+  ctx.fillRect(ex-14,ey-14,28,28);
+  var i,j;
+  for(i=0;i<towers.length;i++){
+    var tw=towers[i];
+    var conf=TOWER_TYPES[tw.type];
+    ctx.fillStyle="rgba(255,255,255,.06)";
+    ctx.beginPath();
+    ctx.arc(tw.x,tw.y,conf.range,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle="#1e293b";
+    ctx.beginPath();
+    ctx.arc(tw.x,tw.y,15,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle=conf.color;
+    ctx.beginPath();
+    ctx.arc(tw.x,tw.y,9,0,Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle=conf.color;
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(tw.x,tw.y);
+    ctx.lineTo(tw.x+13,tw.y);
+    ctx.stroke();
+  }
+  for(i=0;i<shots.length;i++){
+    ctx.fillStyle=shots[i].color;
+    ctx.beginPath();
+    ctx.arc(shots[i].x,shots[i].y,3.4,0,Math.PI*2);
+    ctx.fill();
+  }
+  for(i=0;i<enemies.length;i++){
+    var e=enemies[i];
+    var frac=e.hp/e.maxHp;
+    ctx.fillStyle=frac>0.6?"#22c55e":frac>0.3?"#f59e0b":"#ef4444";
+    ctx.beginPath();
+    ctx.arc(e.x,e.y,13,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle="#080B16";
+    ctx.fillRect(e.x-4,e.y-4,3,3);
+    ctx.fillRect(e.x+2,e.y-4,3,3);
+    ctx.fillStyle="rgba(0,0,0,.5)";
+    ctx.fillRect(e.x-14,e.y-20,28,5);
+    ctx.fillStyle="#22c55e";
+    ctx.fillRect(e.x-14,e.y-20,28*frac,5);
+  }
+  ctx.fillStyle="rgba(238,242,255,.7)";
+  ctx.font="700 12px Segoe UI, Arial";
+  ctx.textAlign="left";
+  ctx.fillText("Start →",6,20);
+  if(spawnQueue>0||enemies.length){
+    ctx.textAlign="right";
+    ctx.fillText("Enemies: "+(enemies.length+spawnQueue),W-8,20);
+  }
+  if(paused){
+    ctx.fillStyle="rgba(5,7,15,.6)";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#eef2ff";ctx.font="800 24px Segoe UI, Arial";ctx.textAlign="center";
+    ctx.fillText("⏸ PAUSED",W/2,H/2-6);
+    ctx.font="600 13px Segoe UI, Arial";ctx.fillStyle="#9aa7d0";
+    ctx.fillText("P diye continue koro",W/2,H/2+22);
+  }
+}
+function loop(){step();draw();requestAnimationFrame(loop);}
+function canvasPos(e){
+  var rect=canvas.getBoundingClientRect();
+  var cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+  var cy=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  return {x:cx*(W/rect.width),y:cy*(H/rect.height)};
+}
+canvas.addEventListener("click",function(e){
+  if(!running||paused||over)return;
+  var p=canvasPos(e);
+  placeTower(p.x,p.y);
+});
+function togglePause(){if(over||!running)return;paused=!paused;}
+document.addEventListener("keydown",function(e){
+  if(e.key==="p"||e.key==="P"||e.key==="Escape")togglePause();
+  if(e.key===" "){e.preventDefault();startWave();}
+},{passive:false});
+document.querySelectorAll(".tw").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".tw").forEach(function(x){x.classList.remove("active")});
+    b.classList.add("active");
+    selected=b.dataset.t;
+  });
+});
+waveBtn.addEventListener("click",startWave);
+document.addEventListener("visibilitychange",function(){if(document.hidden&&running&&!over)paused=true;});
+restartBtn.addEventListener("click",reset);
+ovBtn.addEventListener("click",reset);
+pauseBtn.addEventListener("click",togglePause);
+reset();
+loop();
+})();
+</script>
+</body>
+</html>

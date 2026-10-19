@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Space Shooter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
+.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px}
+.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700}
+.pill b{color:#22d3ee}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:9px 20px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+.btn.ghost{background:rgba(255,255,255,.08);color:#eef2ff;border:1px solid rgba(255,255,255,.15)}
+canvas{border:1px solid rgba(255,255,255,.12);border-radius:12px;max-width:100%;height:auto;box-shadow:0 12px 34px rgba(0,0,0,.5)}
+.hint{font-size:12px;color:#9aa7d0;text-align:center}
+.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px;z-index:9}
+.overlay.show{display:flex}
+.overlay h2{font-size:30px}
+.overlay p{color:#9aa7d0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div class="pill">Score: <b id="score">0</b></div>
+    <div class="pill">Best: <b id="best">0</b></div>
+    <div class="pill">Wave: <b id="wave">1</b></div>
+    <div class="pill">Lives: <b id="lives">❤❤❤</b></div>
+    <button class="btn ghost" id="pauseBtn">⏸ Pause</button>
+    <button class="btn" id="restartBtn">↻ Restart</button>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="hint">⬅➡ Move · Space = shoot (mobile-e nicher button) · Enemy der age age dile jeet!</div>
+  <div style="display:flex;gap:12px">
+    <button class="btn ghost" id="leftBtn" style="font-size:20px">⬅</button>
+    <button class="btn" id="fireBtn" style="font-size:16px">🔫 FIRE</button>
+    <button class="btn ghost" id="rightBtn" style="font-size:20px">➡</button>
+  </div>
+</div>
+
+<div class="overlay" id="ov">
+  <h2 id="ovTitle">😿 Game Over</h2>
+  <p id="ovMsg"></p>
+  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var W=440,H=560;
+var canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+var scoreEl=document.getElementById("score"),bestEl=document.getElementById("best"),waveEl=document.getElementById("wave"),livesEl=document.getElementById("lives");
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var ovBtn=document.getElementById("ovBtn"),restartBtn=document.getElementById("restartBtn"),pauseBtn=document.getElementById("pauseBtn");
+var leftBtn=document.getElementById("leftBtn"),rightBtn=document.getElementById("rightBtn"),fireBtn=document.getElementById("fireBtn");
+var dpr=Math.min(window.devicePixelRatio||1,2);
+canvas.width=W*dpr;canvas.height=H*dpr;
+canvas.style.width="min(92vw,440px)";canvas.style.height="auto";
+ctx.scale(dpr,dpr);
+var ship,shots,enemies,enemyShots,stars,score,best=0,lives,wave,running=false,paused=false,over=false,frame=0,spawnTimer=0,enemyDir=1;
+try{best=parseInt(localStorage.getItem("gvp_space_best"))||0}catch(e){}
+bestEl.textContent=best;
+var AC=null;
+function snd(freq,dur,vol){try{if(!AC){var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A()}if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=freq;o.connect(g);g.connect(AC.destination);var t=AC.currentTime;g.gain.setValueAtTime(vol||0.04,t);g.gain.exponentialRampToValueAtTime(0.001,t+(dur||0.08));o.start(t);o.stop(t+(dur||0.08)+0.02)}catch(e){}}
+function reset(){
+  ship={x:W/2-16,y:H-56,w:32,h:26,speed:4.4,cooldown:0};
+  shots=[];enemyShots=[];enemies=[];
+  score=0;lives=3;wave=1;frame=0;spawnTimer=0;enemyDir=1;over=false;paused=false;
+  stars=[];
+  for(var i=0;i<40;i++)stars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.6+0.4,v:Math.random()*0.8+0.3});
+  spawnWave();
+  scoreEl.textContent=0;waveEl.textContent=1;livesEl.textContent="❤❤❤";
+  ov.classList.remove("show");
+  pauseBtn.textContent="⏸ Pause";
+  running=true;
+  draw();
+}
+function spawnWave(){
+  var cols=6,rows=Math.min(2+Math.floor(wave/2),5);
+  var hp=wave>=4?2:1;
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      enemies.push({
+        x:50+c*58,y:50+r*44,w:30,h:22,
+        hp:hp,row:r,
+        color:r%3===0?"#ef4444":r%3===1?"#f59e0b":"#a855f7",
+        baseY:50+r*44
+      });
+    }
+  }
+  enemyDir=1;
+  spawnTimer=0;
+}
+function updateLives(){livesEl.textContent=lives>0?"❤".repeat(lives):"—";}
+function step(){
+  if(!running||paused||over)return;
+  frame++;
+  var i,j;
+  for(i=0;i<stars.length;i++){
+    stars[i].y+=stars[i].v;
+    if(stars[i].y>H){stars[i].y=0;stars[i].x=Math.random()*W;}
+  }
+  if(ship.cooldown>0)ship.cooldown--;
+  if(ship.x<0)ship.x=0;
+  if(ship.x+ship.w>W)ship.x=W-ship.w;
+  for(i=shots.length-1;i>=0;i--){
+    shots[i].y-=7;
+    if(shots[i].y<-10)shots.splice(i,1);
+  }
+  for(i=enemyShots.length-1;i>=0;i--){
+    enemyShots[i].y+=3+wave*0.2;
+    if(enemyShots[i].y>H+10){enemyShots.splice(i,1);continue;}
+    if(hit(enemyShots[i],ship)){enemyShots.splice(i,1);loseLife();}
+  }
+  var moveX=enemyDir*(0.5+wave*0.12),dropNow=false;
+  for(i=0;i<enemies.length;i++){
+    var e=enemies[i];
+    e.x+=moveX;
+    if(e.x<8||e.x+e.w>W-8)dropNow=true;
+    if(Math.random()<0.0006+wave*0.0004)enemyShots.push({x:e.x+e.w/2-2,y:e.y+e.h,w:4,h:10});
+    if(e.y+e.h>=ship.y+4){over=true;endGame();return;}
+  }
+  if(dropNow){
+    enemyDir*=-1;
+    for(i=0;i<enemies.length;i++)enemies[i].y+=18;
+  }
+  for(i=shots.length-1;i>=0;i--){
+    for(j=enemies.length-1;j>=0;j--){
+      if(hit(shots[i],enemies[j])){
+        var e2=enemies[j];
+        shots.splice(i,1);
+        e2.hp--;
+        if(e2.hp<=0){
+          enemies.splice(j,1);
+          score+=10+e2.row*2;
+          snd(880,0.06,0.04);
+        }else snd(440,0.05,0.035);
+        scoreEl.textContent=score;
+        break;
+      }
+    }
+  }
+  if(!enemies.length){
+    wave++;
+    waveEl.textContent=wave;
+    snd(660,0.15,0.05);
+    spawnWave();
+  }
+  if(score>best){
+    best=score;
+    try{localStorage.setItem("gvp_space_best",String(best))}catch(e){}
+    bestEl.textContent=best;
+  }
+}
+function hit(a,b){return a.x<b.x+b.w&&a.x+(a.w||4)>b.x&&a.y<b.y+b.h&&a.y+(a.h||10)>b.y;}
+function loseLife(){
+  lives--;updateLives();snd(140,0.25,0.06);
+  if(lives<=0){over=true;endGame();}
+  else{
+    ship.x=W/2-16;
+    for(var i=enemyShots.length-1;i>=0;i--)if(enemyShots[i].y>H*0.6)enemyShots.splice(i,1);
+  }
+}
+function shoot(){
+  if(!running||paused||over||ship.cooldown>0)return;
+  shots.push({x:ship.x+ship.w/2-2,y:ship.y-8,w:4,h:12});
+  ship.cooldown=14;
+  snd(740,0.05,0.03);
+}
+function drawShip(x,y){
+  ctx.fillStyle="#22d3ee";
+  ctx.beginPath();
+  ctx.moveTo(x+ship.w/2,y);
+  ctx.lineTo(x+ship.w,y+ship.h);
+  ctx.lineTo(x,y+ship.h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle="#6d5dfc";
+  ctx.fillRect(x+ship.w/2-4,y+ship.h-6,8,10);
+  if(frame%6<3){
+    ctx.fillStyle="#f59e0b";
+    ctx.beginPath();
+    ctx.arc(x+ship.w/2,y+ship.h+4,4,0,Math.PI*2);
+    ctx.fill();
+  }
+}
+function drawEnemy(e){
+  ctx.fillStyle=e.color;
+  ctx.fillRect(e.x,e.y,e.w,e.h);
+  ctx.fillStyle="#080B16";
+  ctx.fillRect(e.x+5,e.y+6,6,6);
+  ctx.fillRect(e.x+e.w-11,e.y+6,6,6);
+  if(e.hp>1){
+    ctx.fillStyle="rgba(255,255,255,.5)";
+    ctx.fillRect(e.x,e.y,e.w,3);
+  }
+}
+function draw(){
+  var sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,"#04060e");
+  sky.addColorStop(1,"#0b1224");
+  ctx.fillStyle=sky;
+  ctx.fillRect(0,0,W,H);
+  for(var i=0;i<stars.length;i++){
+    ctx.fillStyle="rgba(238,242,255,"+(0.3+stars[i].s*0.3)+")";
+    ctx.fillRect(stars[i].x,stars[i].y,stars[i].s,stars[i].s);
+  }
+  for(i=0;i<shots.length;i++){
+    ctx.fillStyle="#22d3ee";
+    ctx.fillRect(shots[i].x,shots[i].y,shots[i].w,shots[i].h);
+  }
+  for(i=0;i<enemyShots.length;i++){
+    ctx.fillStyle="#ef4444";
+    ctx.fillRect(enemyShots[i].x,enemyShots[i].y,4,10);
+  }
+  for(i=0;i<enemies.length;i++)drawEnemy(enemies[i]);
+  if(!over)drawShip(ship.x,ship.y);
+  if(paused){
+    ctx.fillStyle="rgba(5,7,15,.6)";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#eef2ff";ctx.font="800 26px Segoe UI, Arial";ctx.textAlign="center";
+    ctx.fillText("⏸ PAUSED",W/2,H/2-8);
+    ctx.font="600 14px Segoe UI, Arial";ctx.fillStyle="#9aa7d0";
+    ctx.fillText("P diye continue koro",W/2,H/2+22);
+  }
+}
+function endGame(){
+  running=false;
+  ovTitle.textContent=score>=best&&score>0?"🏆 Notun Record!":"😿 Game Over";
+  ovMsg.textContent="Score: "+score+" · Wave: "+wave+" · Best: "+best;
+  ov.classList.add("show");
+}
+function loop(){step();draw();requestAnimationFrame(loop);}
+function togglePause(){if(over||!running)return;paused=!paused;}
+document.addEventListener("keydown",function(e){
+  if(["ArrowLeft","ArrowRight"," "].indexOf(e.key)!==-1)e.preventDefault();
+  if(e.key==="ArrowLeft"||e.key==="a")ship.x-=ship.speed;
+  if(e.key==="ArrowRight"||e.key==="d")ship.x+=ship.speed;
+  if(e.key===" "||e.key==="ArrowUp")shoot();
+  if(e.key==="p"||e.key==="P"||e.key==="Escape")togglePause();
+},{passive:false});
+document.addEventListener("visibilitychange",function(){if(document.hidden&&running&&!over)paused=true;});
+function bindHold(btn,fnDown){
+  var iv=null;
+  function start(e){e.preventDefault();fnDown();clearInterval(iv);iv=setInterval(fnDown,60);}
+  function stop(){clearInterval(iv);iv=null;}
+  btn.addEventListener("touchstart",start,{passive:false});
+  btn.addEventListener("mousedown",start);
+  ["touchend","touchcancel","mouseup","mouseleave"].forEach(function(ev){btn.addEventListener(ev,stop)});
+}
+bindHold(leftBtn,function(){ship.x-=16});
+bindHold(rightBtn,function(){ship.x+=16});
+fireBtn.addEventListener("touchstart",function(e){e.preventDefault();shoot()},{passive:false});
+fireBtn.addEventListener("mousedown",shoot);
+restartBtn.addEventListener("click",reset);
+ovBtn.addEventListener("click",reset);
+pauseBtn.addEventListener("click",togglePause);
+reset();
+loop();
+})();
+</script>
+</body>
+</html>

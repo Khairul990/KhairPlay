@@ -211,7 +211,12 @@
       ["🧊 Block Fall", "gvp_block_best"],
       ["🔡 Hangman", "gvp_hangman_best"],
       ["🔴 Connect Four", "gvp_c4_best"],
-      ["🔨 Whack-a-Mole", "gvp_whack_best"]
+      ["🔨 Whack-a-Mole", "gvp_whack_best"],
+      ["🚀 Space Shooter", "gvp_space_best"],
+      ["🏃 Endless Runner", "gvp_runner_best"],
+      ["🏎️ Racing Challenge", "gvp_racing_best"],
+      ["🎮 Platform Adventure", "gvp_platform_best"],
+      ["🏰 Tower Defense", "gvp_td_best"]
     ];
     var html = "";
     var any = false;

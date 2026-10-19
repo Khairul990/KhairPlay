@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Platform Adventure thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0D1324"/><stop offset="1" stop-color="#141E40"/></linearGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <g fill="rgba(255,255,255,.06)">
+    <circle cx="60" cy="44" r="14"/><circle cx="74" cy="38" r="10"/>
+    <circle cx="330" cy="40" r="12"/><circle cx="342" cy="34" r="9"/>
+  </g>
+  <g>
+    <rect x="0" y="196" width="150" height="29" fill="#1e293b"/><rect x="0" y="196" width="150" height="4" fill="#22c55e"/>
+    <rect x="180" y="150" width="80" height="16" fill="#1e293b"/><rect x="180" y="150" width="80" height="4" fill="#22c55e"/>
+    <rect x="290" y="110" width="80" height="16" fill="#1e293b"/><rect x="290" y="110" width="80" height="4" fill="#22c55e"/>
+    <rect x="90" y="80" width="70" height="16" fill="#1e293b"/><rect x="90" y="80" width="70" height="4" fill="#22c55e"/>
+  </g>
+  <g>
+    <circle cx="124" cy="128" r="8" fill="#fbbf24"/>
+    <text x="124" y="132" font-family="Segoe UI, Arial" font-size="11" font-weight="700" fill="#d97706" text-anchor="middle">$</text>
+    <circle cx="215" cy="128" r="8" fill="#fbbf24"/>
+    <text x="215" y="132" font-family="Segoe UI, Arial" font-size="11" font-weight="700" fill="#d97706" text-anchor="middle">$</text>
+    <circle cx="325" cy="86" r="8" fill="#fbbf24"/>
+    <text x="325" y="90" font-family="Segoe UI, Arial" font-size="11" font-weight="700" fill="#d97706" text-anchor="middle">$</text>
+  </g>
+  <g>
+    <rect x="42" y="156" width="24" height="40" fill="#22d3ee"/>
+    <rect x="58" y="162" width="5" height="5" fill="#080B16"/>
+    <rect x="44" y="192" width="9" height="4" fill="#6d5dfc"/>
+  </g>
+  <g>
+    <circle cx="256" cy="188" r="13" fill="#ef4444"/>
+    <rect x="250" y="183" width="4" height="4" fill="#080B16"/><rect x="258" y="183" width="4" height="4" fill="#080B16"/>
+  </g>
+  <g>
+    <rect x="356" y="110" width="5" height="86" fill="#9aa7d0"/>
+    <path d="M361 110 h30 l-14 11 h-16 z" fill="#f472b6"/>
+  </g>
+</svg>
