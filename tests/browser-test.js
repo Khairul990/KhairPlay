@@ -468,6 +468,148 @@ function readGameRegistry() {
     await page.close();
   }
 
+  /* ---------- 10. NEW GAMES: ACTUALLY PLAYABLE ---------- */
+  console.log('\n[10] new games (playable, not just loadable)');
+  {
+    // ---- Slide Puzzle ----
+    {
+      const page = await browser.newPage();
+      const localErrs = [];
+      page.on('pageerror', (e) => localErrs.push(`pageerror: ${e.message}`));
+      page.on('console', (m) => { if (m.type() === 'error') localErrs.push(`console.error: ${m.text()}`); });
+      try {
+        await page.setViewport({ width: 1024, height: 768 });
+        await page.goto(`${BASE}/pages/play.html?id=slide-puzzle`, { waitUntil: 'networkidle2', timeout: 45000 });
+        await page.waitForSelector('#gamePlayArea iframe', { timeout: 15000 });
+        const frame = await page.$('#gamePlayArea iframe');
+        const handle = await frame.contentFrame();
+        await new Promise((r) => setTimeout(r, 1200));
+
+        if (!handle) {
+          bad('slide-puzzle: iframe did not attach');
+        } else {
+          const board = await handle.evaluate(() => ({
+            total: document.querySelectorAll('.tile').length,
+            blank: document.querySelectorAll('.tile.blank').length,
+            moves: (document.getElementById('moves') || {}).textContent
+          }));
+          if (board.total === 9 && board.blank === 1) ok(`slide-puzzle: 3x3 board is the default (${board.total} tiles, 1 blank)`);
+          else bad(`slide-puzzle: unexpected default board ${JSON.stringify(board)}`);
+
+          const switched = await handle.evaluate(() => {
+            document.getElementById('m4').click();
+            return {
+              total: document.querySelectorAll('.tile').length,
+              blank: document.querySelectorAll('.tile.blank').length,
+              active: document.getElementById('m4').classList.contains('active'),
+              moves: document.getElementById('moves').textContent
+            };
+          });
+          if (switched.total === 16 && switched.blank === 1 && switched.active) ok('slide-puzzle: 4x4 mode swaps in a 16-tile board and resets the counter');
+          else bad(`slide-puzzle: 4x4 switch gave ${JSON.stringify(switched)}`);
+
+          const clickMove = await handle.evaluate(() => {
+            const all = [...document.querySelectorAll('.tile')];
+            const bi = all.findIndex((c) => c.classList.contains('blank'));
+            const size = 4;
+            const r = Math.floor(bi / size), c = bi % size;
+            const adj = [];
+            if (r > 0) adj.push(bi - size);
+            if (r < size - 1) adj.push(bi + size);
+            if (c > 0) adj.push(bi - 1);
+            if (c < size - 1) adj.push(bi + 1);
+            all[adj[0]].click();
+            return document.getElementById('moves').textContent;
+          });
+          if (clickMove === '1') ok('slide-puzzle: tapping a tile beside the gap advances the move counter');
+          else bad(`slide-puzzle: move counter after click = "${clickMove}"`);
+
+          const keyMove = await handle.evaluate(() => {
+            const before = document.getElementById('moves').textContent;
+            for (const k of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']) {
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+              if (document.getElementById('moves').textContent !== before) return k;
+            }
+            return null;
+          });
+          if (keyMove) ok(`slide-puzzle: arrow-key input also moves a tile (${keyMove})`);
+          else warn('slide-puzzle: no arrow key changed the move counter');
+
+          const bestEl = await handle.evaluate(() => (document.getElementById('best') || {}).textContent);
+          if (bestEl === '-') ok('slide-puzzle: best-score pill shows "-" until a puzzle is solved');
+          else warn(`slide-puzzle: best pill = "${bestEl}"`);
+
+          if (localErrs.length) localErrs.forEach((e) => bad(`slide-puzzle: ${e}`));
+        }
+      } catch (e) {
+        bad(`slide-puzzle: playability check failed - ${e.message.split('\n')[0]}`);
+      }
+      await page.close();
+    }
+
+    // ---- Lights Out ----
+    {
+      const page = await browser.newPage();
+      const localErrs = [];
+      page.on('pageerror', (e) => localErrs.push(`pageerror: ${e.message}`));
+      page.on('console', (m) => { if (m.type() === 'error') localErrs.push(`console.error: ${m.text()}`); });
+      try {
+        await page.setViewport({ width: 1024, height: 768 });
+        await page.goto(`${BASE}/pages/play.html?id=lights-out`, { waitUntil: 'networkidle2', timeout: 45000 });
+        await page.waitForSelector('#gamePlayArea iframe', { timeout: 15000 });
+        const frame = await page.$('#gamePlayArea iframe');
+        const handle = await frame.contentFrame();
+        await new Promise((r) => setTimeout(r, 1200));
+
+        if (!handle) {
+          bad('lights-out: iframe did not attach');
+        } else {
+          const start = await handle.evaluate(() => ({
+            cells: document.querySelectorAll('.cell').length,
+            on: document.querySelectorAll('.cell.on').length,
+            shown: parseInt((document.getElementById('left') || {}).textContent || '-1', 10),
+            moves: (document.getElementById('moves') || {}).textContent
+          }));
+          if (start.cells === 25 && start.on > 0 && start.on < 25) ok(`lights-out: 5x5 board rendered (${start.on} lights lit)`);
+          else bad(`lights-out: unexpected board ${JSON.stringify(start)}`);
+          if (start.shown === start.on) ok('lights-out: "lights left" HUD matches the board');
+          else bad(`lights-out: HUD says ${start.shown} but board has ${start.on} lit`);
+
+          const after = await handle.evaluate(() => {
+            const before = parseInt(document.getElementById('left').textContent, 10);
+            document.querySelector('.cell.on').click();
+            return {
+              before,
+              after: parseInt(document.getElementById('left').textContent, 10),
+              moves: document.getElementById('moves').textContent,
+              dom: document.querySelectorAll('.cell.on').length
+            };
+          });
+          if (after.after !== after.before && after.moves === '1') ok('lights-out: tapping a lit light changes the board and advances moves');
+          else bad(`lights-out: tap result ${JSON.stringify(after)}`);
+          if (after.dom === after.after) ok('lights-out: HUD still tracks the board after a move');
+          else bad(`lights-out: HUD ${after.after} vs board ${after.dom} after a move`);
+
+          const reset = await handle.evaluate(() => {
+            document.getElementById('resetBtn').click();
+            return {
+              moves: document.getElementById('moves').textContent,
+              cells: document.querySelectorAll('.cell').length,
+              on: document.querySelectorAll('.cell.on').length
+            };
+          });
+          if (reset.moves === '0' && reset.cells === 25 && reset.on > 0) ok('lights-out: reset deals a fresh board and zeroes the counter');
+          else bad(`lights-out: reset result ${JSON.stringify(reset)}`);
+
+          if (localErrs.length) localErrs.forEach((e) => bad(`lights-out: ${e}`));
+        }
+      } catch (e) {
+        bad(`lights-out: playability check failed - ${e.message.split('\n')[0]}`);
+      }
+      await page.close();
+    }
+  }
+
   await browser.close();
   server.close();
 

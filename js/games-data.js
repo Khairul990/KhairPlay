@@ -369,6 +369,38 @@ const GAMES = [
     iframe: "games/tower-defense.html",
     featured: true,
     enabled: true
+  },
+  {
+    id: "slide-puzzle",
+    title: "Slide Puzzle",
+    category: "educational",
+    tags: ["puzzle", "logic", "numbers"],
+    icon: "🔢",
+    color: "#00D5FF",
+    thumb: "public/brand/games/thumb-slide-puzzle.svg",
+    addedAt: "2026-10-19",
+    description: "Tile gulo soroie 1 theke serial banan — 3x3 ba 4x4, dui ta size!",
+    players: "1 Player",
+    controls: "Click / Tap / Arrow keys",
+    iframe: "games/slide-puzzle.html",
+    featured: false,
+    enabled: true
+  },
+  {
+    id: "lights-out",
+    title: "Lights Out",
+    category: "adult",
+    tags: ["puzzle", "brain", "logic"],
+    icon: "💡",
+    color: "#FFB020",
+    thumb: "public/brand/games/thumb-lights-out.svg",
+    addedAt: "2026-10-19",
+    description: "Ekta light off korle charpashechara o change hoy — shob light nirob kore din!",
+    players: "1 Player",
+    controls: "Click / Tap",
+    iframe: "games/lights-out.html",
+    featured: false,
+    enabled: true
   }
 ];
 

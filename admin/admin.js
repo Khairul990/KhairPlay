@@ -216,7 +216,11 @@
       ["🏃 Endless Runner", "gvp_runner_best"],
       ["🏎️ Racing Challenge", "gvp_racing_best"],
       ["🎮 Platform Adventure", "gvp_platform_best"],
-      ["🏰 Tower Defense", "gvp_td_best"]
+      ["🏰 Tower Defense", "gvp_td_best"],
+      ["🔢 Slide Puzzle 3x3", "gvp_slide_best_3"],
+      ["🔢 Slide Puzzle 4x4", "gvp_slide_best_4"],
+      ["💡 Lights Out 4x4", "gvp_lights_best_4"],
+      ["💡 Lights Out 5x5", "gvp_lights_best_5"]
     ];
     var html = "";
     var any = false;

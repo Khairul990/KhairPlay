@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Lights Out thumbnail">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0D1324"/><stop offset="1" stop-color="#182642"/></linearGradient>
+  <radialGradient id="on" cx="35%" cy="30%"><stop offset="0" stop-color="#FDE68A"/><stop offset="0.6" stop-color="#F59E0B"/><stop offset="1" stop-color="#B45309"/></radialGradient></defs>
+  <rect width="400" height="225" fill="url(#b)"/>
+  <g>
+    <rect x="100" y="34" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="146" y="34" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="192" y="34" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="238" y="34" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="284" y="34" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="100" y="80" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="146" y="80" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="192" y="80" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="238" y="80" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="284" y="80" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="100" y="126" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="146" y="126" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="192" y="126" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="238" y="126" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="284" y="126" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="100" y="172" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+    <rect x="146" y="172" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="192" y="172" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="238" y="172" width="36" height="36" rx="9" fill="#111834" stroke="#2A3855" stroke-width="3"/>
+    <rect x="284" y="172" width="36" height="36" rx="9" fill="url(#on)" stroke="#FBBF24" stroke-width="3"/>
+  </g>
+</svg>
