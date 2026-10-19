@@ -29,9 +29,24 @@ const htmlFiles = files.filter((f) => f.endsWith('.html'));
 /* ---------- 1. registry integrity ---------- */
 const gd = read('js/games-data.js');
 const entries = [];
-const re = /id:\s*"([a-z0-9-]+)"[\s\S]*?title:\s*"([^"]*)"[\s\S]*?category:\s*"([^"]*)"[\s\S]*?(?:thumb:\s*"([^"]*)",)?[\s\S]*?iframe:\s*"([^"]+)"/g;
-let m;
-while ((m = re.exec(gd))) entries.push({ id: m[1], title: m[2], cat: m[3], thumb: m[4] || '', iframe: m[5] });
+/* parse object-by-object: a single lazy regex over the whole array can never
+   capture optional fields (thumb), which silently disabled that check. */
+const field = (block, key) => {
+  const mm = block.match(new RegExp(`\\b${key}:\\s*"([^"]*)"`));
+  return mm ? mm[1] : '';
+};
+for (const block of gd.split(/\{\s*\r?\n\s*id:/).slice(1)) {
+  const id = (block.match(/^\s*"([^"]+)"/) || [])[1];
+  if (!id) continue;
+  entries.push({
+    id,
+    title: field(block, 'title'),
+    cat: field(block, 'category'),
+    thumb: field(block, 'thumb'),
+    iframe: field(block, 'iframe')
+  });
+}
+if (!entries.length) fail('games-data.js: no registry entries could be parsed');
 
 const ids = new Set();
 for (const e of entries) {
