@@ -241,6 +241,13 @@ const GVP = (function () {
 
     document.querySelectorAll(".filter-btn").forEach(function (b) {
       if (b.dataset.cat === activeCat) b.classList.add("active");
+      const catCount = b.dataset.cat === "all"
+        ? GAMES.filter(function (g) { return g.enabled; }).length
+        : getGamesByCategory(b.dataset.cat).length;
+      const cnt = document.createElement("span");
+      cnt.className = "fcount";
+      cnt.textContent = catCount;
+      b.appendChild(cnt);
       b.addEventListener("click", function () {
         document.querySelectorAll(".filter-btn").forEach(function (x) { x.classList.remove("active"); });
         b.classList.add("active");
@@ -296,7 +303,25 @@ const GVP = (function () {
     if (ctrl) ctrl.textContent = "Controls: " + g.controls;
     const pl = document.getElementById("gamePlayers");
     if (pl) pl.textContent = g.players;
-    wrap.innerHTML = '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-fullscreen"></iframe>';
+    wrap.innerHTML =
+      '<div class="frame-skeleton"><div class="sk-spinner"></div><div class="sk-text">Game load hocche...</div></div>' +
+      '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-fullscreen"></iframe>';
+    const iframe = wrap.querySelector("iframe");
+    if (iframe) {
+      iframe.addEventListener("load", function () {
+        const sk = wrap.querySelector(".frame-skeleton");
+        if (sk) sk.remove();
+      });
+      setTimeout(function () {
+        const sk = wrap.querySelector(".frame-skeleton");
+        if (sk) sk.remove();
+      }, 6000);
+    }
+    const catTag = document.getElementById("gameCatTag");
+    if (catTag) {
+      const cat = CATEGORIES.find(function (c) { return c.id === g.category; });
+      if (cat) catTag.innerHTML = cat.icon + ' <a href="' + basePath() + 'pages/games.html?cat=' + cat.id + '">' + cat.title + "</a>";
+    }
 
     const share = document.getElementById("shareBtn");
     if (share) {

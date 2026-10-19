@@ -893,3 +893,115 @@ body { animation: pnFadeUp 0.45s ease both; }
 /* filter bar polish */
 .filter-bar .filter-btn { transition: 0.2s; }
 .filter-bar .filter-btn:hover { transform: translateY(-2px); border-color: var(--violet); }
+
+/* ============ PHASE 2 PREMIUM POLISH ============ */
+
+/* hero headline gradient */
+.hero h1 {
+  background: linear-gradient(120deg, #F7F9FF 30%, #00D5FF 70%, #7C4DFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* big play overlay on card hover */
+.game-thumb::after {
+  content: "▶";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  color: #F7F9FF;
+  background: rgba(8, 11, 22, 0.55);
+  opacity: 0;
+  transition: 0.25s;
+  pointer-events: none;
+}
+.game-card:hover .game-thumb::after { opacity: 1; }
+.cat-badge { z-index: 2; }
+
+/* iframe loading skeleton */
+.game-frame-box { position: relative; min-height: 320px; }
+.game-frame-box iframe { position: relative; z-index: 1; background: #05070f; }
+.frame-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  background: var(--raised);
+  border-radius: inherit;
+  overflow: hidden;
+}
+.frame-skeleton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(124, 77, 255, 0.14) 50%, transparent 70%);
+  animation: skeletonShine 1.2s infinite;
+}
+@keyframes skeletonShine {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+.frame-skeleton .sk-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid var(--border);
+  border-top-color: var(--violet);
+  animation: skSpin 0.8s linear infinite;
+  position: relative;
+  z-index: 1;
+}
+.frame-skeleton .sk-text { color: var(--text-2); font-size: 13.5px; font-weight: 600; position: relative; z-index: 1; }
+@keyframes skSpin { to { transform: rotate(360deg); } }
+
+/* focus visibility (a11y) */
+a:focus-visible, button:focus-visible, input:focus-visible, .cat-card:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+/* filter chip counts */
+.filter-btn .fcount {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.filter-btn.active .fcount { background: rgba(8, 11, 22, 0.35); }
+
+/* section head link arrow */
+.section-head a { transition: 0.2s; }
+.section-head a:hover { transform: translateX(4px); display: inline-block; }
+
+/* play page title gradient */
+.play-head h1 { letter-spacing: -0.01em; }
+
+/* category tag next to title */
+.game-cat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.game-cat-tag a { color: var(--cyan); }
+
+/* empty search hint */
+.empty .big { animation: pnFloatC 3s ease-in-out infinite; }
