@@ -30,13 +30,13 @@ canvas{border:1px solid rgba(255,255,255,.12);border-radius:14px;max-width:100%;
     <button class="btn" id="restartBtn">↻ Restart</button>
   </div>
   <canvas id="c"></canvas>
-  <div class="hint">Click / Space / Tap — udan shuru korun!</div>
+  <div class="hint">Click / Space / Tap — Take flight! Avoid pipes!</div>
 </div>
 
 <div class="overlay" id="ov">
   <h2 id="ovTitle">😿 Game Over</h2>
   <p id="ovMsg"></p>
-  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+  <button class="btn" id="ovBtn">▶ Play Again</button>
 </div>
 
 <script>
@@ -216,7 +216,7 @@ function loop(){
     ctx.fillStyle="#eef2ff";ctx.font="800 26px Segoe UI, Arial";ctx.textAlign="center";
     ctx.fillText("⏸ PAUSED",W/2,H/2-8);
     ctx.font="600 14px Segoe UI, Arial";ctx.fillStyle="#9aa7d0";
-    ctx.fillText("P diye continue koro",W/2,H/2+22);
+    ctx.fillText("Press P to Resume",W/2,H/2+22);
   }
   requestAnimationFrame(loop);
 }

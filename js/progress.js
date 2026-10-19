@@ -6,20 +6,21 @@
   var DAILY_GOAL = 3;
 
   var BADGES = [
-    { id: "first", icon: "👶", title: "First Steps", desc: "Ekti game khelun" },
-    { id: "five", icon: "🧭", title: "Explorer", desc: "5 ti alada game khelun" },
-    { id: "ten", icon: "🗂️", title: "Collector", desc: "10 ti alada game khelun" },
-    { id: "all", icon: "👑", title: "Completionist", desc: "Shob game khelun" },
-    { id: "cat", icon: "🎨", title: "All-Rounder", desc: "Teen category-r game khelun" },
-    { id: "lvl5", icon: "⭐", title: "Rising Star", desc: "Level 5 reach korun" },
-    { id: "streak3", icon: "🔥", title: "On Fire", desc: "3 din consecutive khelun" },
-    { id: "daily", icon: "📅", title: "Daily Done", desc: "Aaj-er daily challenge puro korun" }
+    { id: "first", icon: "👶", title: "First Steps", desc: "Play your first game", coins: 100 },
+    { id: "five", icon: "🧭", title: "Cyber Explorer", desc: "Play 5 distinct games", coins: 250 },
+    { id: "ten", icon: "🗂️", title: "Game Collector", desc: "Experience 10 distinct titles", coins: 500 },
+    { id: "all", icon: "👑", title: "Completionist", desc: "Play every game on the platform", coins: 1500 },
+    { id: "cat", icon: "🎨", title: "All-Rounder", desc: "Play games across all 3 categories", coins: 300 },
+    { id: "lvl5", icon: "⭐", title: "Rising Star", desc: "Reach Level 5 rank", coins: 400 },
+    { id: "streak3", icon: "🔥", title: "On Fire", desc: "Maintain a 3-day login streak", coins: 350 },
+    { id: "daily", icon: "📅", title: "Daily Champion", desc: "Complete today's daily challenge", coins: 200 }
   ];
 
   function today() {
     var d = new Date();
     return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
   }
+
   function load() {
     var s = null;
     try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
@@ -30,9 +31,11 @@
     s.games = s.games || {};
     return s;
   }
+
   function save(s) {
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
   }
+
   function levelOf(xp) { return Math.floor(xp / LEVEL_STEP) + 1; }
   function xpInLevel(xp) { return xp % LEVEL_STEP; }
 
@@ -59,16 +62,24 @@
     }
     return Object.keys(set).length;
   }
+
   function totalGames() {
-    return typeof GAMES !== "undefined" ? GAMES.filter(function (g) { return g.enabled; }).length : 22;
+    return typeof GAMES !== "undefined" ? GAMES.filter(function (g) { return g.enabled; }).length : 24;
   }
 
   function unlock(s, id, list) {
     if (s.badges[id]) return false;
     s.badges[id] = Date.now();
     var b = null;
-    for (var i = 0; i < BADGES.length; i++) if (BADGES[i].id === id) b = BADGES[i];
-    if (b && list) list.push(b);
+    for (var i = 0; i < BADGES.length; i++) {
+      if (BADGES[i].id === id) b = BADGES[i];
+    }
+    if (b && list) {
+      list.push(b);
+      if (window.NovaWallet) {
+        window.NovaWallet.addCoins(b.coins || 100, "Achievement: " + b.title, 50);
+      }
+    }
     return true;
   }
 
@@ -90,7 +101,12 @@
     var before = levelOf(s.xp);
     s.xp += amount;
     var after = levelOf(s.xp);
-    if (after > before) badges.push({ levelUp: after });
+    if (after > before) {
+      badges.push({ levelUp: after });
+      if (window.NovaWallet) {
+        window.NovaWallet.addCoins(200 * after, "Level Up to Lv " + after, 100);
+      }
+    }
     return amount;
   }
 
@@ -100,8 +116,8 @@
     var badges = [];
     var t = s.days[today()] || { count: 0 };
     var gamesToday = s.days[today()] ? t.games || [] : [];
-    var gain = 5;
-    if (gamesToday.indexOf(gameId) === -1) gain += 10;
+    var gain = 10;
+    if (gamesToday.indexOf(gameId) === -1) gain += 20;
     addXP(s, gain, badges);
     t.count = (t.count || 0) + 1;
     gamesToday.push(gameId);
@@ -122,17 +138,18 @@
       var el = document.createElement("div");
       el.className = "xp-toast";
       if (b.levelUp) {
-        el.innerHTML = "🎉 <b>Level " + b.levelUp + "!</b> Chaliye jaan!";
+        el.innerHTML = "🎉 <b>Rank Advanced to Level " + b.levelUp + "!</b> +Bonus Coins Awarded!";
       } else {
-        el.innerHTML = b.icon + " <b>" + b.title + "</b> — " + b.desc;
+        el.innerHTML = b.icon + " <b>" + b.title + "</b> — " + b.desc + " (+" + (b.coins || 100) + " 🪙)";
       }
       wrap.appendChild(el);
     });
     document.body.appendChild(wrap);
+    if (window.NovaAudio) window.NovaAudio.playFanfare();
     setTimeout(function () {
       wrap.classList.add("gone");
       setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 400);
-    }, 2600);
+    }, 2800);
   }
 
   function render(panel) {
@@ -147,14 +164,14 @@
     var html = "";
 
     html += '<div class="prog-head">';
-    html += '<div class="prog-level"><span class="prog-badge">Lv ' + lvl + "</span><div><b>" + s.xp + " XP</b><small>" + (LEVEL_STEP - inLvl) + " XP — next level</small></div></div>";
+    html += '<div class="prog-level"><span class="prog-badge">LVL ' + lvl + "</span><div><b>" + s.xp + " XP Total</b><small>" + (LEVEL_STEP - inLvl) + " XP to next rank</small></div></div>";
     html += '<div class="prog-bar"><span style="width:' + pct + '%"></span></div>';
     html += "</div>";
 
     html += '<div class="prog-stats">';
-    html += '<div class="stat-box"><b>' + played + "/" + total + "</b><span>Games Try Kora</span></div>";
-    html += '<div class="stat-box"><b>' + Math.min(t.count, DAILY_GOAL) + "/" + DAILY_GOAL + "</b><span>Aaj-er Challenge</span></div>";
-    html += '<div class="stat-box"><b>' + streak + "</b><span>Din Streak</span></div>";
+    html += '<div class="stat-box"><b>' + played + "/" + total + "</b><span>Games Explored</span></div>";
+    html += '<div class="stat-box"><b>' + Math.min(t.count, DAILY_GOAL) + "/" + DAILY_GOAL + "</b><span>Daily Target</span></div>";
+    html += '<div class="stat-box"><b>' + streak + "</b><span>Days Active Streak 🔥</span></div>";
     html += "</div>";
 
     var done = 0;
@@ -163,9 +180,9 @@
       if (has) done++;
       return '<div class="prog-badge-card ' + (has ? "got" : "locked") + '"><span class="pb-icon">' + (has ? b.icon : "🔒") + "</span><b>" + b.title + "</b><small>" + b.desc + "</small></div>";
     }).join("");
-    html += '<div class="prog-sub">🏅 Achievements <span class="prog-count">' + done + "/" + BADGES.length + "</span></div>";
+    html += '<div class="prog-sub">🏅 Cyber Achievements <span class="prog-count">' + done + "/" + BADGES.length + "</span></div>";
     html += '<div class="prog-badges">' + badgesHtml + "</div>";
-    html += '<p class="mini-note">Tomar progress ei browser-e (ei device-e) save thake — kono login lagbe na, tai onno device-e dekhabe na.</p>';
+    html += '<p class="mini-note">⚡ Your gamer progress, high scores, and virtual coin balance are safely preserved on your local profile.</p>';
 
     panel.innerHTML = html;
   }

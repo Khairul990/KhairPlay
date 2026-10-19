@@ -42,7 +42,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
     <div class="pill">Best: <b id="best">0</b></div>
   </div>
   <div class="dots" id="dots"></div>
-  <div class="status" id="status">Start doro — sequence mone rakho ar repeat koro!</div>
+  <div class="status" id="status">Press Start — Memorize and repeat the light sequence!</div>
   <div class="pads" id="pads">
     <button class="pad green" data-i="0" aria-label="green"></button>
     <button class="pad red" data-i="1" aria-label="red"></button>
@@ -52,7 +52,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
   <div class="row">
     <button class="btn" id="startBtn">▶ Shuru Kor</button>
   </div>
-  <p class="hint">Sequence dekho, tarpor oi order-ei colors tap koro. Bhul korle streak shesh — notun shuru!</p>
+  <p class="hint">Watch the pattern sequence, then tap each pad in order. One mistake ends the streak!</p>
 </div>
 
 <script>
@@ -115,7 +115,7 @@ function playSequence(){
     if(i>=sequence.length){
       clearInterval(iv);
       accepting=true;inputIdx=0;setPads(true);
-      statusEl.textContent="Ekhon tap koro!";
+      statusEl.textContent="Your turn — Repeat pattern!";
       drawDots();
       return;
     }

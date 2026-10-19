@@ -60,9 +60,9 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
 </div>
 
 <div class="overlay" id="ov">
-  <h2 id="ovTitle">Shesh!</h2>
+  <h2 id="ovTitle">Quiz Complete!</h2>
   <p id="ovMsg"></p>
-  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+  <button class="btn" id="ovBtn">▶ Play Again</button>
 </div>
 
 <script>
@@ -174,7 +174,7 @@ function finish(){
     bestEl.textContent=best;
     ovTitle.textContent="🏆 Notun Best!";
   }else{
-    ovTitle.textContent="🎉 Shesh!";
+    ovTitle.textContent="🎉 Quiz Complete!";
   }
   ovMsg.textContent="Score: "+score+" · "+correctCount+"/"+totalQ+" thik · Best: "+best;
   ov.classList.add("show");

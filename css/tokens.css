@@ -1,44 +1,72 @@
-/* PlayNova design tokens — single source of truth (from brand guide) */
+/* PlayNova design tokens — Single Source of Truth */
 :root {
-  /* colors */
-  --bg: #080B16;
-  --raised: #0D1324;
-  --surface: #111B2F;
-  --border: #2A3855;
-  --text: #F7F9FF;
-  --text-2: #A9B5CC;
-  --violet: #7C4DFF;
+  /* Colors */
+  --bg: #060913;
+  --bg-deep: #03050a;
+  --raised: #0b1122;
+  --surface: #101930;
+  --surface-hover: #172445;
+  --border: #233458;
+  --border-glow: rgba(124, 77, 255, 0.4);
+  --text: #f7f9ff;
+  --text-2: #9fb1d1;
+  --text-muted: #6f80a3;
+
+  /* Neon Accents */
+  --violet: #7c4dff;
   --violet-soft: rgba(124, 77, 255, 0.16);
-  --cyan: #00D5FF;
+  --cyan: #00d5ff;
   --cyan-soft: rgba(0, 213, 255, 0.14);
-  --pink: #FF3D9A;
-  --success: #20C997;
-  --warning: #FFB020;
-  --danger: #FF647C;
-  --grad: linear-gradient(135deg, #C43DFF 0%, #7C4DFF 48%, #00B8FF 100%);
-  --grad-text: linear-gradient(90deg, #7C4DFF, #00D5FF);
+  --pink: #ff3d9a;
+  --pink-soft: rgba(255, 61, 154, 0.15);
+  --gold: #ffb703;
+  --gold-glow: rgba(255, 183, 3, 0.35);
+  --gem-blue: #00f0ff;
+  --success: #20c997;
+  --warning: #ffb020;
+  --danger: #ff4765;
 
-  /* legacy aliases (old classnames keep working) */
-  --bg-2: #0D1324;
-  --card: #111B2F;
-  --card-2: #182642;
-  --line: #2A3855;
-  --muted: #A9B5CC;
-  --brand: #7C4DFF;
-  --brand-2: #00D5FF;
-  --ok: #20C997;
-  --warn: #FFB020;
-  --bad: #FF647C;
+  /* VIP Tiers */
+  --vip-bronze: #cd7f32;
+  --vip-silver: #c0c0c0;
+  --vip-gold: #ffd700;
+  --vip-platinum: #00e5ff;
+  --vip-diamond: #b983ff;
+  --vip-legend: #ff2a6d;
 
-  /* typography */
+  /* Gradients */
+  --grad: linear-gradient(135deg, #c43dff 0%, #7c4dff 48%, #00b8ff 100%);
+  --grad-gold: linear-gradient(135deg, #ffe259 0%, #ffa751 100%);
+  --grad-cyan: linear-gradient(135deg, #00d5ff 0%, #0077ff 100%);
+  --grad-pink: linear-gradient(135deg, #ff3d9a 0%, #7c4dff 100%);
+  --grad-dark: linear-gradient(180deg, rgba(16, 25, 48, 0.8) 0%, rgba(6, 9, 19, 0.95) 100%);
+  --grad-text: linear-gradient(90deg, #7c4dff, #00d5ff);
+
+  /* Legacy Aliases */
+  --bg-2: #0b1122;
+  --card: #101930;
+  --card-2: #172445;
+  --line: #233458;
+  --muted: #9fb1d1;
+  --brand: #7c4dff;
+  --brand-2: #00d5ff;
+  --ok: #20c997;
+  --warn: #ffb020;
+  --bad: #ff4765;
+
+  /* Typography */
   --font-head: "Orbitron", "Segoe UI", system-ui, Arial, sans-serif;
   --font-ui: "Poppins", "Segoe UI", system-ui, Arial, sans-serif;
   --font-kids: "Nunito", "Poppins", "Segoe UI", system-ui, Arial, sans-serif;
 
-  /* shape */
+  /* Shapes & Effects */
   --radius: 16px;
   --radius-sm: 10px;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --radius-full: 9999px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.7);
   --glow: 0 0 0 1px rgba(124, 77, 255, 0.35), 0 10px 34px rgba(124, 77, 255, 0.25);
-  --max: 1200px;
+  --glow-cyan: 0 0 0 1px rgba(0, 213, 255, 0.4), 0 10px 30px rgba(0, 213, 255, 0.25);
+  --glow-gold: 0 0 0 1px rgba(255, 183, 3, 0.4), 0 10px 30px rgba(255, 183, 3, 0.25);
+  --max: 1360px;
 }

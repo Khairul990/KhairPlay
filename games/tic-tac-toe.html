@@ -35,7 +35,7 @@ html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",sy
     <div class="pill">⭕ O: <b id="so">0</b></div>
     <div class="pill">🤝 Draw: <b id="sd">0</b></div>
   </div>
-  <div id="msg">X diye shuru korun!</div>
+  <div id="msg">Player X moves first!</div>
   <div style="color:#9aa7d0;font-size:13px;text-align:center">3 ti char lagbe — row, column, ba diagonal diye jita jay. AI unbeatable! 😈</div>
   <div class="board" id="board"></div>
   <button class="btn" id="resetBtn">↻ Notun Khel</button>
@@ -58,7 +58,7 @@ function saveStats(){try{localStorage.setItem("gvp_ttt_stats",JSON.stringify(sta
 function newGame(){
   board=Array(9).fill("");
   turn="X";over=false;
-  msg.textContent=vsAI?"X diye shuru korun!":"Player X er palon!";
+  msg.textContent=vsAI?"Player X moves first!":"Player X's Turn!";
   render();
 }
 function render(){
@@ -86,7 +86,7 @@ function endCheck(){
   var cells=boardEl.querySelectorAll(".cell");
   if(w.line)w.line.forEach(function(i){cells[i].classList.add("win");});
   if(w.p==="draw"){
-    stats.d++;msg.textContent="🤝 Draw hoyeche! Abar kheln.";
+    stats.d++;msg.textContent="🤝 It's a Draw! Play again.";
   }else{
     if(w.p==="X")stats.x++;else stats.o++;
     msg.textContent=(vsAI&&w.p==="O")?"😿 Computer jeetlo!":"🏆 "+w.p+" jeetlo!";

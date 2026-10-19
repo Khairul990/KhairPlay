@@ -143,12 +143,12 @@ function finish(){
   state="done";
   var valid=times.filter(function(t){return t!==null;});
   if(!valid.length){
-    setArena("idle","<h2>😿 Kono valid round hoyni</h2><p>Early click royeche. Abar cheshta korun!</p>");
+    setArena("idle","<h2>😿 No Valid Rounds</h2><p>False start detected. Try again!</p>");
   }else{
     var sum=0;
     for(var i=0;i<valid.length;i++)sum+=valid[i];
     var av=Math.round(sum/valid.length);
-    var title="🎉 Shesh!",extra="";
+    var title="🎉 Test Complete!",extra="";
     if(mode==="streak"){
       title=currentStreak>=total?"🔥 Perfect Streak!":currentStreak>0?"🔥 Streak: "+currentStreak:"😿 Shuru tei bhul";
       extra=" · Best possible streak: "+total;
@@ -162,7 +162,7 @@ function finish(){
     setArena("idle","<h2>"+title+"</h2><p>Average: "+av+"ms · Valid rounds: "+valid.length+"/"+total+extra+"</p>");
   }
   startBtn.style.display="inline-flex";
-  startBtn.textContent="▶ Abar Kheln";
+  startBtn.textContent="▶ Test Again";
   renderRounds();
 }
 function restart(){

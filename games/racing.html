@@ -3,149 +3,881 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Racing Challenge</title>
+<title>Cyber Velocity: Highway Supercar Racer</title>
 <link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=racing">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
-.wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px}
-.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
-.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700}
-.pill b{color:#22d3ee}
-.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:9px 20px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
-.btn.ghost{background:rgba(255,255,255,.08);color:#eef2ff;border:1px solid rgba(255,255,255,.15)}
-canvas{border:1px solid rgba(255,255,255,.12);border-radius:12px;max-width:100%;height:auto;box-shadow:0 12px 34px rgba(0,0,0,.5)}
-.hint{font-size:12px;color:#9aa7d0;text-align:center}
-.overlay{position:fixed;inset:0;background:rgba(5,7,15,.9);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:20px;z-index:9}
-.overlay.show{display:flex}
-.overlay h2{font-size:30px}
-.overlay p{color:#9aa7d0}
+html,body{
+  height:100%;
+  background:#02040a;
+  color:#f0f4ff;
+  font-family:"Poppins",system-ui,sans-serif;
+  overflow:hidden;
+  touch-action:none;
+  user-select:none;
+}
+
+/* Ambient Cyber Glow Background */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(0,213,255,0.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(124,77,255,0.08) 0%, transparent 60%),
+    radial-gradient(circle at 20% 85%, rgba(255,61,154,0.06) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+
+.wrap{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:6px;
+  position:relative;
+  z-index:1;
+}
+
+/* ========================================================
+   FUTURISTIC SUPERCAR COCKPIT HUD
+   ======================================================== */
+.cockpit-dashboard{
+  width:100%;
+  max-width:410px;
+  background:linear-gradient(180deg, rgba(16,25,48,0.92) 0%, rgba(8,12,24,0.92) 100%);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(0,213,255,0.3);
+  border-radius:18px;
+  padding:8px 12px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    0 0 20px rgba(0,213,255,0.15);
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+/* Top Telemetry Row: Speedometer, Distance, Best */
+.telemetry-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.gauge-block{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+.gauge-label{
+  font-size:9.5px;
+  font-family:"Orbitron",sans-serif;
+  color:#6f82a8;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  font-weight:700;
+}
+.gauge-val{
+  font-family:"Orbitron",sans-serif;
+  font-size:18px;
+  font-weight:900;
+  color:#00d5ff;
+  letter-spacing:0.5px;
+  text-shadow:0 0 12px rgba(0,213,255,0.6);
+  line-height:1.1;
+}
+.gauge-val.gold{
+  color:#ffb703;
+  text-shadow:0 0 12px rgba(255,183,3,0.5);
+}
+.gauge-unit{
+  font-size:10px;
+  font-weight:700;
+  color:#9fb1d1;
+  margin-left:2px;
+}
+
+/* Center Cluster: Gear & Action buttons */
+.center-cluster{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.gear-badge{
+  background:rgba(0,213,255,0.12);
+  border:1px solid rgba(0,213,255,0.4);
+  color:#00d5ff;
+  font-family:"Orbitron",sans-serif;
+  font-weight:900;
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:6px;
+  letter-spacing:0.5px;
+}
+.gear-badge.nitro-mode{
+  background:rgba(255,61,154,0.2);
+  border-color:#ff3d9a;
+  color:#ff3d9a;
+  text-shadow:0 0 8px rgba(255,61,154,0.6);
+  animation:gearBlink 0.6s infinite;
+}
+@keyframes gearBlink{
+  0%,100%{opacity:1;}
+  50%{opacity:0.4;}
+}
+
+.hud-btn{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#f0f4ff;
+  width:28px;
+  height:28px;
+  border-radius:8px;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.15s ease;
+}
+.hud-btn:hover{
+  background:rgba(0,213,255,0.2);
+  border-color:#00d5ff;
+  color:#00d5ff;
+}
+
+/* Secondary Row: Nitro Gauge & Shield Cells */
+.sub-telemetry-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:4px;
+  border-top:1px solid rgba(255,255,255,0.07);
+}
+
+/* Nitro Energy Bar */
+.nitro-box{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.nitro-tag{
+  font-family:"Orbitron",sans-serif;
+  font-size:9.5px;
+  font-weight:800;
+  color:#ff3d9a;
+  text-shadow:0 0 8px rgba(255,61,154,0.5);
+  letter-spacing:0.5px;
+}
+.nitro-track{
+  flex:1;
+  height:8px;
+  background:rgba(6,9,19,0.8);
+  border-radius:999px;
+  border:1px solid rgba(255,61,154,0.3);
+  overflow:hidden;
+  position:relative;
+}
+.nitro-bar{
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg, #7c4dff 0%, #ff3d9a 100%);
+  box-shadow:0 0 10px rgba(255,61,154,0.7);
+  border-radius:999px;
+  transition:width 0.1s linear;
+}
+
+/* Holographic Shield Cells */
+.shield-box{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.shield-cell{
+  width:20px;
+  height:10px;
+  border-radius:3px;
+  background:#00d5ff;
+  box-shadow:0 0 8px rgba(0,213,255,0.7);
+  transition:all 0.2s ease;
+}
+.shield-cell.spent{
+  background:rgba(255,255,255,0.1);
+  box-shadow:none;
+}
+
+/* ========================================================
+   CANVAS VIEWPORT & FRAME
+   ======================================================== */
+.canvas-chassis{
+  position:relative;
+  width:min(94vw,410px);
+  border-radius:20px;
+  padding:4px;
+  background:linear-gradient(135deg, rgba(0,213,255,0.35) 0%, rgba(124,77,255,0.2) 50%, rgba(255,61,154,0.3) 100%);
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.85),
+    0 0 35px rgba(0,213,255,0.18);
+}
+canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:16px;
+  background:#050711;
+}
+
+/* Cockpit Corner Bevels */
+.chassis-corner{
+  position:absolute;
+  width:14px;
+  height:14px;
+  pointer-events:none;
+}
+.corner-tl{top:8px;left:8px;border-top:2px solid #00d5ff;border-left:2px solid #00d5ff;}
+.corner-tr{top:8px;right:8px;border-top:2px solid #00d5ff;border-right:2px solid #00d5ff;}
+.corner-bl{bottom:8px;left:8px;border-bottom:2px solid #00d5ff;border-left:2px solid #00d5ff;}
+.corner-br{bottom:8px;right:8px;border-bottom:2px solid #00d5ff;border-right:2px solid #00d5ff;}
+
+/* ========================================================
+   CONTROL PADDLES & MECHANICAL BUTTONS
+   ======================================================== */
+.cockpit-controls{
+  width:100%;
+  max-width:410px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 4px;
+}
+
+.paddle-btn{
+  flex:1;
+  height:48px;
+  background:linear-gradient(180deg, rgba(20,32,60,0.9) 0%, rgba(10,16,32,0.95) 100%);
+  border:1px solid rgba(0,213,255,0.35);
+  border-radius:14px;
+  color:#00d5ff;
+  font-family:"Orbitron",sans-serif;
+  font-weight:900;
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,0.6);
+  transition:all 0.12s ease;
+}
+.paddle-btn:active{
+  transform:scale(0.96);
+  background:#00d5ff;
+  color:#050914;
+  box-shadow:0 0 20px rgba(0,213,255,0.8);
+}
+
+.nitro-boost-btn{
+  flex:1.4;
+  height:50px;
+  background:linear-gradient(135deg, #ff3d9a 0%, #7c4dff 100%);
+  border:1px solid rgba(255,255,255,0.3);
+  border-radius:14px;
+  color:#ffffff;
+  font-family:"Orbitron",sans-serif;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:0.8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  cursor:pointer;
+  box-shadow:
+    0 8px 24px rgba(255,61,154,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  transition:all 0.12s ease;
+  animation:boostPulse 2.4s infinite;
+}
+@keyframes boostPulse{
+  0%,100%{box-shadow:0 8px 20px rgba(255,61,154,0.4);}
+  50%{box-shadow:0 12px 30px rgba(255,61,154,0.7), 0 0 18px rgba(0,213,255,0.4);}
+}
+.nitro-boost-btn:active{
+  transform:scale(0.96);
+  filter:brightness(1.2);
+}
+
+.key-shortcuts{
+  font-size:11px;
+  color:#7388b0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+}
+.keycap{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.18);
+  padding:2px 7px;
+  border-radius:5px;
+  font-family:"Orbitron",sans-serif;
+  font-size:9.5px;
+  color:#f0f4ff;
+}
+
+/* ========================================================
+   TELEMETRY POST-RACE MODAL
+   ======================================================== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(2,4,10,0.92);
+  backdrop-filter:blur(14px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:99;
+}
+.overlay.show{display:flex;}
+
+.result-card{
+  background:linear-gradient(180deg, #101930 0%, #060913 100%);
+  border:1px solid rgba(0,213,255,0.4);
+  box-shadow:0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(0,213,255,0.2);
+  border-radius:22px;
+  padding:24px 28px;
+  width:100%;
+  max-width:390px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  animation:cardSlide 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes cardSlide{
+  from{transform:translateY(30px) scale(0.92);opacity:0;}
+  to{transform:translateY(0) scale(1);opacity:1;}
+}
+.result-card h2{
+  font-family:"Orbitron",sans-serif;
+  font-size:26px;
+  font-weight:900;
+  letter-spacing:0.5px;
+  color:#00d5ff;
+  text-shadow:0 0 20px rgba(0,213,255,0.6);
+}
+.result-stats-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  width:100%;
+  margin:4px 0;
+}
+.r-stat-box{
+  background:rgba(16,25,48,0.7);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.r-stat-label{
+  font-size:10px;
+  font-family:"Orbitron",sans-serif;
+  color:#6f82a8;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+.r-stat-val{
+  font-family:"Orbitron",sans-serif;
+  font-size:18px;
+  font-weight:900;
+  color:#f0f4ff;
+  margin-top:2px;
+}
+.reward-badge{
+  background:linear-gradient(90deg, rgba(255,183,3,0.15), rgba(255,183,3,0.25));
+  border:1px solid rgba(255,183,3,0.5);
+  color:#ffb703;
+  font-family:"Orbitron",sans-serif;
+  font-size:13px;
+  font-weight:800;
+  padding:8px 18px;
+  border-radius:999px;
+  box-shadow:0 0 16px rgba(255,183,3,0.3);
+}
+.btn-deploy{
+  background:linear-gradient(135deg, #00d5ff 0%, #7c4dff 100%);
+  color:#04060e;
+  border:0;
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  font-family:"Orbitron",sans-serif;
+  font-weight:900;
+  font-size:15px;
+  letter-spacing:0.8px;
+  cursor:pointer;
+  box-shadow:0 10px 25px rgba(0,213,255,0.4);
+  transition:all 0.15s ease;
+  margin-top:6px;
+}
+.btn-deploy:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 35px rgba(0,213,255,0.6);
+}
 </style>
 </head>
 <body>
-<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Racing Challenge — PlayNova</h1>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Cyber Velocity: Highway Supercar Racer — PlayNova</h1>
+
 <div class="wrap">
-  <div class="hud">
-    <div class="pill">Score: <b id="score">0</b></div>
-    <div class="pill">Best: <b id="best">0</b></div>
-    <div class="pill">Speed: <b id="spd">1x</b></div>
-    <div class="pill">Lives: <b id="lives">❤❤❤</b></div>
-    <button class="btn ghost" id="pauseBtn">⏸ Pause</button>
-    <button class="btn" id="restartBtn">↻ Restart</button>
+  <!-- Top Cockpit Digital Telemetry Dashboard -->
+  <div class="cockpit-dashboard">
+    <div class="telemetry-row">
+      <div class="gauge-block">
+        <span class="gauge-label">SPEED</span>
+        <div class="gauge-val" id="hudSpeed">145<span class="gauge-unit">KM/H</span></div>
+      </div>
+      <div class="gauge-block">
+        <span class="gauge-label">DISTANCE</span>
+        <div class="gauge-val" id="score">0</div>
+      </div>
+      <div class="gauge-block">
+        <span class="gauge-label">RECORD</span>
+        <div class="gauge-val gold" id="best">0</div>
+      </div>
+      <div class="center-cluster">
+        <div class="gear-badge" id="gearBadge">D4</div>
+        <button class="hud-btn" id="pauseBtn" title="Pause Game">⏸</button>
+        <button class="hud-btn" id="restartBtn" title="Restart Session">↻</button>
+      </div>
+    </div>
+
+    <div class="sub-telemetry-row">
+      <!-- Nitro Meter -->
+      <div class="nitro-box">
+        <span class="nitro-tag">⚡ NITRO</span>
+        <div class="nitro-track">
+          <div class="nitro-bar" id="nitroBar"></div>
+        </div>
+        <span id="nitroPct" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800;color:#ff3d9a;min-width:32px">100%</span>
+      </div>
+      <!-- Coins & Shields -->
+      <div class="gauge-block" style="flex-direction:row;align-items:center;gap:4px">
+        <span style="font-size:13px">🪙</span>
+        <span id="coins" style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:800;color:#ffb703">0</span>
+      </div>
+      <div class="shield-box" id="shieldContainer">
+        <div class="shield-cell"></div>
+        <div class="shield-cell"></div>
+        <div class="shield-cell"></div>
+      </div>
+    </div>
   </div>
-  <canvas id="c"></canvas>
-  <div class="hint">⬅➡ lane bodlan · Mobile-e niche-r button / swipe korun</div>
-  <div style="display:flex;gap:20px">
-    <button class="btn ghost" id="leftBtn" style="font-size:22px;padding:10px 30px">⬅</button>
-    <button class="btn ghost" id="rightBtn" style="font-size:22px;padding:10px 30px">➡</button>
+
+  <!-- Canvas Chassis with Telemetry Bevels -->
+  <div class="canvas-chassis">
+    <span class="chassis-corner corner-tl"></span>
+    <span class="chassis-corner corner-tr"></span>
+    <span class="chassis-corner corner-bl"></span>
+    <span class="chassis-corner corner-br"></span>
+    <canvas id="c"></canvas>
+  </div>
+
+  <!-- Bottom Cockpit Controls -->
+  <div class="cockpit-controls">
+    <button class="paddle-btn" id="leftBtn" aria-label="Steer Left">◀ STEER</button>
+    <button class="nitro-boost-btn" id="nitroBtn" aria-label="Nitro Boost">⚡ NITRO OVERDRIVE</button>
+    <button class="paddle-btn" id="rightBtn" aria-label="Steer Right">STEER ▶</button>
+  </div>
+
+  <div class="key-shortcuts">
+    <span><span class="keycap">A</span> <span class="keycap">D</span> / <span class="keycap">◀</span> <span class="keycap">▶</span> Steer</span>
+    <span>•</span>
+    <span><span class="keycap">SPACE</span> Nitro</span>
+    <span>•</span>
+    <span><span class="keycap">P</span> Pause</span>
   </div>
 </div>
 
+<!-- Race Telemetry Post-Crash Modal -->
 <div class="overlay" id="ov">
-  <h2 id="ovTitle">😿 Crash!</h2>
-  <p id="ovMsg"></p>
-  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+  <div class="result-card">
+    <div style="font-size:36px" id="ovIcon">💥</div>
+    <h2 id="ovTitle">RACE CRASH</h2>
+    <div class="result-stats-grid">
+      <div class="r-stat-box">
+        <span class="r-stat-label">Distance Sprinted</span>
+        <span class="r-stat-val" id="ovScore">0</span>
+      </div>
+      <div class="r-stat-box">
+        <span class="r-stat-label">Top Velocity</span>
+        <span class="r-stat-val" id="ovTopSpeed">0 KM/H</span>
+      </div>
+      <div class="r-stat-box">
+        <span class="r-stat-label">NovaCoins Picked</span>
+        <span class="r-stat-val" style="color:#ffb703" id="ovCoins">0</span>
+      </div>
+      <div class="r-stat-box">
+        <span class="r-stat-label">Session Best</span>
+        <span class="r-stat-val" style="color:#00d5ff" id="ovBest">0</span>
+      </div>
+    </div>
+    <div class="reward-badge" id="ovReward">+50 NovaCoins Credited!</div>
+    <button class="btn-deploy" id="ovBtn">▶ REDEPLOY SUPERCAR</button>
+  </div>
 </div>
 
 <script>
 (function(){
 "use strict";
-var W=380,H=520;
+
+var W=400,H=560;
 var canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
-var scoreEl=document.getElementById("score"),bestEl=document.getElementById("best"),spdEl=document.getElementById("spd"),livesEl=document.getElementById("lives");
-var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovMsg=document.getElementById("ovMsg");
+var scoreEl=document.getElementById("score"),bestEl=document.getElementById("best"),coinsEl=document.getElementById("coins");
+var hudSpeedEl=document.getElementById("hudSpeed"),gearBadgeEl=document.getElementById("gearBadge");
+var nitroBarEl=document.getElementById("nitroBar"),nitroPctEl=document.getElementById("nitroPct");
+var shieldContainer=document.getElementById("shieldContainer");
+
+var ov=document.getElementById("ov"),ovTitle=document.getElementById("ovTitle"),ovIcon=document.getElementById("ovIcon");
+var ovScore=document.getElementById("ovScore"),ovTopSpeed=document.getElementById("ovTopSpeed");
+var ovCoins=document.getElementById("ovCoins"),ovBest=document.getElementById("ovBest"),ovReward=document.getElementById("ovReward");
 var ovBtn=document.getElementById("ovBtn"),restartBtn=document.getElementById("restartBtn"),pauseBtn=document.getElementById("pauseBtn");
-var leftBtn=document.getElementById("leftBtn"),rightBtn=document.getElementById("rightBtn");
+var leftBtn=document.getElementById("leftBtn"),rightBtn=document.getElementById("rightBtn"),nitroBtn=document.getElementById("nitroBtn");
+
 var dpr=Math.min(window.devicePixelRatio||1,2);
 canvas.width=W*dpr;canvas.height=H*dpr;
-canvas.style.width="min(80vw,340px)";canvas.style.height="auto";
 ctx.scale(dpr,dpr);
-var ROAD_L=40,ROAD_R=W-40,LANES=3,LANE_W=(ROAD_R-ROAD_L)/LANES;
-var player,cars,score,best=0,lives,speed,running=false,paused=false,over=false,frame=0,spawnT=0,stripe=0;
+
+var ROAD_L=44,ROAD_R=W-44,LANES=3,LANE_W=(ROAD_R-ROAD_L)/LANES;
+var player,cars,coins,particles,cityBuildings,stars,lightPoles;
+var score,coinsCollected,best=0,lives,baseSpeed,currentSpeed,nitro,nitroActive=false;
+var running=false,paused=false,over=false,frame=0,spawnT=0,stripe=0,screenShake=0,topSpeedReached=145;
+
 try{best=parseInt(localStorage.getItem("gvp_racing_best"))||0}catch(e){}
 bestEl.textContent=best;
+
+// Web Audio sound synthesizer
 var AC=null;
-function snd(freq,dur,vol){try{if(!AC){var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A()}if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=freq;o.connect(g);g.connect(AC.destination);var t=AC.currentTime;g.gain.setValueAtTime(vol||0.045,t);g.gain.exponentialRampToValueAtTime(0.001,t+(dur||0.08));o.start(t);o.stop(t+(dur||0.08)+0.02)}catch(e){}}
+function getAC(){
+  if(!AC){
+    var A=window.AudioContext||window.webkitAudioContext;
+    if(A)AC=new A();
+  }
+  if(AC&&AC.state==="suspended")AC.resume();
+  return AC;
+}
+
+function playSnd(type){
+  try{
+    var c=getAC();if(!c)return;
+    var now=c.currentTime;
+    if(type==="steer"){
+      var o=c.createOscillator(),g=c.createGain();
+      o.type="sine";o.frequency.setValueAtTime(380,now);o.frequency.exponentialRampToValueAtTime(160,now+0.05);
+      g.gain.setValueAtTime(0.04,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.05);
+      o.connect(g);g.connect(c.destination);o.start(now);o.stop(now+0.06);
+    }else if(type==="coin"){
+      var o1=c.createOscillator(),g1=c.createGain();
+      o1.type="sine";o1.frequency.setValueAtTime(987,now);o1.frequency.setValueAtTime(1318,now+0.08);
+      g1.gain.setValueAtTime(0.08,now);g1.gain.exponentialRampToValueAtTime(0.001,now+0.28);
+      o1.connect(g1);g1.connect(c.destination);o1.start(now);o1.stop(now+0.29);
+    }else if(type==="nitro"){
+      var o2=c.createOscillator(),g2=c.createGain();
+      o2.type="sawtooth";o2.frequency.setValueAtTime(140,now);o2.frequency.exponentialRampToValueAtTime(680,now+0.32);
+      g2.gain.setValueAtTime(0.09,now);g2.gain.exponentialRampToValueAtTime(0.001,now+0.36);
+      o2.connect(g2);g2.connect(c.destination);o2.start(now);o2.stop(now+0.38);
+    }else if(type==="crash"){
+      var o3=c.createOscillator(),g3=c.createGain();
+      o3.type="sawtooth";o3.frequency.setValueAtTime(140,now);o3.frequency.exponentialRampToValueAtTime(25,now+0.38);
+      g3.gain.setValueAtTime(0.14,now);g3.gain.exponentialRampToValueAtTime(0.001,now+0.42);
+      o3.connect(g3);g3.connect(c.destination);o3.start(now);o3.stop(now+0.45);
+    }
+  }catch(e){}
+}
+
 function laneX(l){return ROAD_L+LANE_W*l+LANE_W/2;}
+
+function initSkyline(){
+  cityBuildings=[];
+  var bx=0;
+  while(bx<W){
+    var bw=Math.random()*30+20;
+    var bh=Math.random()*45+25;
+    cityBuildings.push({
+      x:bx,w:bw,h:bh,
+      windows:Math.random()>0.3
+    });
+    bx+=bw+2;
+  }
+  stars=[];
+  for(var i=0;i<30;i++){
+    stars.push({x:Math.random()*W,y:Math.random()*60,s:Math.random()*1.5+0.5,alpha:Math.random()*0.8+0.2});
+  }
+  lightPoles=[];
+  for(var lp=0;lp<6;lp++){
+    lightPoles.push({y:lp*100,side:lp%2===0?-1:1});
+  }
+}
+
 function reset(){
-  player={lane:1,x:laneX(1)-16,y:H-94,w:32,h:58,targetX:laneX(1)-16};
-  cars=[];score=0;lives=3;speed=3;frame=0;spawnT=50;stripe=0;over=false;paused=false;
-  scoreEl.textContent=0;spdEl.textContent="1x";livesEl.textContent="❤❤❤";
+  player={lane:1,x:laneX(1)-18,y:H-105,w:36,h:64,targetX:laneX(1)-18,tilt:0};
+  cars=[];coins=[];particles=[];
+  score=0;coinsCollected=0;lives=3;baseSpeed=4.2;currentSpeed=4.2;nitro=100;nitroActive=false;
+  frame=0;spawnT=45;stripe=0;over=false;paused=false;screenShake=0;topSpeedReached=145;
+
+  scoreEl.textContent="0";coinsEl.textContent="0";
+  nitroBarEl.style.width="100%";
+  nitroPctEl.textContent="100%";
+  updateShieldUI();
+  updateGearAndSpeed();
+  initSkyline();
+
   ov.classList.remove("show");
-  pauseBtn.textContent="⏸ Pause";
+  pauseBtn.textContent="⏸";
   running=true;
   draw();
 }
+
+function updateShieldUI(){
+  var cells=shieldContainer.querySelectorAll(".shield-cell");
+  cells.forEach(function(c,idx){
+    c.classList.toggle("spent",idx>=lives);
+  });
+}
+
+function updateGearAndSpeed(){
+  var kmh=Math.round(currentSpeed*35);
+  if(kmh>topSpeedReached)topSpeedReached=kmh;
+  hudSpeedEl.innerHTML=kmh+'<span class="gauge-unit">KM/H</span>';
+
+  if(nitroActive){
+    gearBadgeEl.textContent="OVERDRIVE 🔥";
+    gearBadgeEl.classList.add("nitro-mode");
+  }else{
+    gearBadgeEl.classList.remove("nitro-mode");
+    if(kmh<150)gearBadgeEl.textContent="D3";
+    else if(kmh<190)gearBadgeEl.textContent="D4";
+    else gearBadgeEl.textContent="D5";
+  }
+}
+
 function move(dir){
   if(!running||paused||over)return;
   var nl=player.lane+dir;
   if(nl<0||nl>=LANES)return;
   player.lane=nl;
-  player.targetX=laneX(nl)-16;
-  snd(420,0.05,0.03);
+  player.targetX=laneX(nl)-18;
+  player.tilt=dir*0.28;
+  playSnd("steer");
+
+  // Tire smoke & drift sparks
+  for(var p=0;p<8;p++){
+    particles.push({
+      x:player.x+player.w/2,y:player.y+player.h-4,
+      vx:(Math.random()-0.5)*4,vy:Math.random()*2+2,
+      r:Math.random()*4+2,alpha:0.8,color:"rgba(0,213,255,"
+    });
+  }
 }
+
+function triggerNitro(on){
+  if(on&&nitro>10){
+    if(!nitroActive)playSnd("nitro");
+    nitroActive=true;
+  }else{
+    nitroActive=false;
+  }
+}
+
 function step(){
   if(!running||paused||over)return;
   frame++;
-  if(frame%280===0&&speed<9.5){speed+=0.6;spdEl.textContent=(speed/3).toFixed(1).replace(".0","")+"x";}
-  stripe=(stripe+speed)%36;
-  score+=Math.round(speed*0.35);
+
+  // Nitro consumption and regeneration
+  if(nitroActive&&nitro>0){
+    currentSpeed=baseSpeed*1.78;
+    nitro=Math.max(0,nitro-0.85);
+    screenShake=2.5;
+
+    // Dual jet flame particles shooting from exhausts
+    particles.push({
+      x:player.x+8+Math.random()*4,y:player.y+player.h+2,
+      vx:(Math.random()-0.5)*1.5,vy:Math.random()*6+5,
+      r:Math.random()*5+3,alpha:0.95,color:"rgba(0,213,255,"
+    });
+    particles.push({
+      x:player.x+player.w-12+Math.random()*4,y:player.y+player.h+2,
+      vx:(Math.random()-0.5)*1.5,vy:Math.random()*6+5,
+      r:Math.random()*5+3,alpha:0.95,color:"rgba(255,61,154,"
+    });
+  }else{
+    nitroActive=false;
+    currentSpeed=baseSpeed;
+    if(nitro<100)nitro=Math.min(100,nitro+0.25);
+  }
+
+  nitroBarEl.style.width=Math.round(nitro)+"%";
+  nitroPctEl.textContent=Math.round(nitro)+"%";
+
+  if(frame%260===0&&baseSpeed<9.6){
+    baseSpeed+=0.4;
+  }
+
+  stripe=(stripe+currentSpeed)%44;
+  score+=Math.round(currentSpeed*0.45);
   scoreEl.textContent=score;
-  player.x+=(player.targetX-player.x)*0.22;
-  if(player.x<0)player.x=0;
+  updateGearAndSpeed();
+
+  // Smooth car position lerp
+  player.x+=(player.targetX-player.x)*0.26;
+  player.tilt*=(1-0.16);
+
+  if(screenShake>0)screenShake*=0.86;
+
+  // Streetlights passing down the sides
+  for(var lp=0;lp<lightPoles.length;lp++){
+    lightPoles[lp].y+=currentSpeed*1.2;
+    if(lightPoles[lp].y>H+30){
+      lightPoles[lp].y=-30;
+    }
+  }
+
+  // Spawning oncoming traffic
   if(spawnT<=0){
     var free=[];
     for(var l=0;l<LANES;l++)free.push(l);
-    for(var i=0;i<cars.length;i++)if(cars[i].y<100)free=free.filter(function(x){return x!==cars[i].lane;});
-    var spawnCount=Math.random()<0.25&&free.length>1?2:1;
-    for(var s=0;s<spawnCount&&free.length;s++){
+    for(var i=0;i<cars.length;i++)if(cars[i].y<130)free=free.filter(function(x){return x!==cars[i].lane;});
+
+    if(free.length>0){
       var idx=Math.floor(Math.random()*free.length);
-      var lane=free.splice(idx,1)[0];
-      var cols=["#ef4444","#f59e0b","#22c55e","#a855f7","#64748b"];
-      cars.push({lane:lane,x:laneX(lane)-16,y:-70,w:32,h:54,color:cols[Math.floor(Math.random()*cols.length)],vy:0.6+Math.random()*0.8});
+      var lane=free[idx];
+      var cols=["#ff4765","#ffb020","#20c997","#b983ff","#ff3d9a","#38bdf8"];
+      cars.push({
+        lane:lane,x:laneX(lane)-18,y:-80,w:36,h:62,
+        color:cols[Math.floor(Math.random()*cols.length)],
+        vy:Math.random()*1.3+0.6
+      });
+
+      // 40% chance to drop golden NovaCoin
+      if(Math.random()<0.45){
+        var coinLane=free[Math.floor(Math.random()*free.length)];
+        coins.push({
+          lane:coinLane,x:laneX(coinLane),y:-140,r:12,rot:0
+        });
+      }
     }
-    spawnT=Math.max(34,72-Math.floor(speed*4))+Math.floor(Math.random()*30);
+    spawnT=Math.max(28,70-Math.floor(baseSpeed*3.6))+Math.floor(Math.random()*25);
   }
   spawnT--;
+
+  // Update Coins
+  for(var cIdx=coins.length-1;cIdx>=0;cIdx--){
+    var cn=coins[cIdx];
+    cn.y+=currentSpeed;
+    cn.rot+=0.08;
+    var dx=cn.x-(player.x+player.w/2);
+    var dy=cn.y-(player.y+player.h/2);
+    if(Math.hypot(dx,dy)<player.w/2+cn.r){
+      coins.splice(cIdx,1);
+      coinsCollected++;
+      score+=60;
+      coinsEl.textContent=coinsCollected;
+      playSnd("coin");
+      for(var cp=0;cp<10;cp++){
+        particles.push({
+          x:cn.x,y:cn.y,
+          vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6,
+          r:Math.random()*3+2,alpha:1,color:"rgba(255,183,3,"
+        });
+      }
+      continue;
+    }
+    if(cn.y>H+30)coins.splice(cIdx,1);
+  }
+
+  // Update Traffic
   for(var j=cars.length-1;j>=0;j--){
     var c=cars[j];
-    c.y+=(speed+c.vy);
-    if(c.y>H+40){cars.splice(j,1);score+=5;scoreEl.textContent=score;continue;}
-    if(player.x<c.x+c.w-6&&player.x+player.w>c.x+6&&player.y<c.y+c.h-6&&player.y+player.h>c.y+6){
+    c.y+=(currentSpeed+c.vy);
+    if(c.y>H+70){
+      cars.splice(j,1);
+      score+=12;
+      scoreEl.textContent=score;
+      continue;
+    }
+
+    // High precision collision check
+    if(player.x<c.x+c.w-6&&player.x+player.w>c.x+6&&player.y<c.y+c.h-8&&player.y+player.h>c.y+8){
       cars.splice(j,1);
       lives--;
-      livesEl.textContent=lives>0?"❤".repeat(lives):"—";
-      snd(120,0.3,0.07);
+      updateShieldUI();
+      playSnd("crash");
+      screenShake=12;
+
+      for(var ep=0;ep<24;ep++){
+        particles.push({
+          x:player.x+player.w/2,y:player.y+player.h/2,
+          vx:(Math.random()-0.5)*9,vy:(Math.random()-0.5)*9,
+          r:Math.random()*5+2,alpha:1,color:"rgba(255,71,101,"
+        });
+      }
+
       if(lives<=0){
         over=true;running=false;
-        ovTitle.textContent=score>=best?"🏆 Notun Record!":"💥 Crash!";
-        ovMsg.textContent="Score: "+score+" · Best: "+best;
+        var earnedCoins=Math.floor(score/15)+coinsCollected*5;
+        ovIcon.textContent=score>=best?"🏆":"💥";
+        ovTitle.textContent=score>=best?"NEW WORLD RECORD!":"RACE TERMINATED";
+        ovScore.textContent=score+" pts";
+        ovTopSpeed.textContent=topSpeedReached+" KM/H";
+        ovCoins.textContent=coinsCollected;
+        ovBest.textContent=best+" pts";
+        ovReward.textContent="+"+earnedCoins+" NovaCoins Credited To Wallet!";
         ov.classList.add("show");
+
+        if(window.parent&&window.parent.postMessage){
+          window.parent.postMessage({
+            type:"NOVA_EARN_COINS",
+            amount:earnedCoins,
+            reason:"Cyber Velocity High Score ("+score+" pts)",
+            xp:Math.round(score/10)
+          },"*");
+        }
         return;
-      }else{
-        player.y=H-94;
       }
     }
   }
+
+  // Update particles
+  for(var pIdx=particles.length-1;pIdx>=0;pIdx--){
+    var pt=particles[pIdx];
+    pt.x+=pt.vx;pt.y+=pt.vy;pt.alpha-=0.035;
+    if(pt.alpha<=0)particles.splice(pIdx,1);
+  }
+
   if(score>best){
     best=score;
     try{localStorage.setItem("gvp_racing_best",String(best))}catch(e){}
     bestEl.textContent=best;
   }
 }
-function drawCar(x,y,w,h,color,isPlayer){
-  ctx.fillStyle=color;
-  roundRect(x,y,w,h,8);
-  ctx.fill();
-  ctx.fillStyle="rgba(8,11,22,.55)";
-  roundRect(x+5,y+9,w-10,h*0.34,5);
-  ctx.fill();
-  if(isPlayer){
-    ctx.fillStyle="rgba(238,242,255,.9)";
-    ctx.fillRect(x+4,y+4,7,5);
-    ctx.fillRect(x+w-11,y+4,7,5);
-  }
-}
+
 function roundRect(x,y,w,h,r){
   ctx.beginPath();
   ctx.moveTo(x+r,y);
@@ -155,60 +887,310 @@ function roundRect(x,y,w,h,r){
   ctx.arcTo(x,y,x+w,y,r);
   ctx.closePath();
 }
+
+function drawCar(x,y,w,h,color,isPlayer,tilt){
+  ctx.save();
+  ctx.translate(x+w/2,y+h/2);
+  if(tilt)ctx.rotate(tilt);
+
+  // Underglow aura
+  ctx.shadowColor=isPlayer?(nitroActive?"#ff3d9a":"#00d5ff"):color;
+  ctx.shadowBlur=isPlayer?22:9;
+
+  // Car Main Body
+  ctx.fillStyle=color;
+  roundRect(-w/2,-h/2,w,h,10);
+  ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Carbon Fiber Racing Diffuser & Side Skirts
+  ctx.fillStyle="#060913";
+  ctx.fillRect(-w/2+2,-h/2+8,w-4,h-16);
+
+  // Body panels
+  ctx.fillStyle=color;
+  roundRect(-w/2+4,-h/2+2,w-8,h-4,6);
+  ctx.fill();
+
+  // Supercar Cockpit Glass
+  ctx.fillStyle="#03050c";
+  roundRect(-w/2+6,-h/2+12,w-12,h*0.35,6);
+  ctx.fill();
+
+  // Cockpit glare line
+  ctx.fillStyle="rgba(255,255,255,0.4)";
+  ctx.fillRect(-w/2+8,-h/2+14,3,h*0.28);
+
+  if(isPlayer){
+    // Dual Carbon Fiber Center Hood Stripes
+    ctx.fillStyle="rgba(255,255,255,0.25)";
+    ctx.fillRect(-3,-h/2+3,2,h-6);
+    ctx.fillRect(1,-h/2+3,2,h-6);
+
+    // Forward Xenon Projector Headlights Cone
+    var beamGrad=ctx.createLinearGradient(0,-h/2,0,-h/2-160);
+    beamGrad.addColorStop(0,"rgba(0,213,255,0.5)");
+    beamGrad.addColorStop(0.3,"rgba(0,213,255,0.2)");
+    beamGrad.addColorStop(1,"rgba(0,213,255,0)");
+    ctx.fillStyle=beamGrad;
+
+    ctx.beginPath();
+    ctx.moveTo(-w/2+3,-h/2);
+    ctx.lineTo(-w/2-28,-h/2-160);
+    ctx.lineTo(-w/2+28,-h/2-160);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(w/2-3,-h/2);
+    ctx.lineTo(w/2-28,-h/2-160);
+    ctx.lineTo(w/2+28,-h/2-160);
+    ctx.closePath();
+    ctx.fill();
+
+    // Headlight Lens
+    ctx.fillStyle="#f7f9ff";
+    ctx.shadowColor="#00d5ff";
+    ctx.shadowBlur=8;
+    ctx.fillRect(-w/2+4,-h/2+2,7,5);
+    ctx.fillRect(w/2-11,-h/2+2,7,5);
+    ctx.shadowBlur=0;
+
+    // Rear Neon Lightbar & Exhaust Pipes
+    ctx.fillStyle=nitroActive?"#00d5ff":"#ff4765";
+    ctx.shadowColor=nitroActive?"#00d5ff":"#ff4765";
+    ctx.shadowBlur=8;
+    ctx.fillRect(-w/2+5,h/2-6,w-10,3);
+    ctx.shadowBlur=0;
+
+    // Chrome Exhaust tips
+    ctx.fillStyle="#c0c0c0";
+    ctx.fillRect(-w/2+7,h/2-3,5,4);
+    ctx.fillRect(w/2-12,h/2-3,5,4);
+  }else{
+    // Traffic Headlights & Taillights
+    ctx.fillStyle="rgba(255,255,255,0.8)";
+    ctx.fillRect(-w/2+4,-h/2+2,6,4);
+    ctx.fillRect(w/2-10,-h/2+2,6,4);
+    ctx.fillStyle="#ff4765";
+    ctx.fillRect(-w/2+4,h/2-5,6,4);
+    ctx.fillRect(w/2-10,h/2-5,6,4);
+  }
+
+  ctx.restore();
+}
+
+function drawSkyline(){
+  // Stars in the horizon
+  for(var s=0;s<stars.length;s++){
+    var st=stars[s];
+    ctx.fillStyle="rgba(240,244,255,"+st.alpha+")";
+    ctx.fillRect(st.x,st.y,st.s,st.s);
+  }
+  // Futuristic Skyscraper Silhouettes
+  for(var i=0;i<cityBuildings.length;i++){
+    var b=cityBuildings[i];
+    var by=70-b.h;
+    ctx.fillStyle="#080e1c";
+    ctx.fillRect(b.x,by,b.w,b.h);
+    // Glowing skyscraper windows
+    if(b.windows){
+      ctx.fillStyle="rgba(0,213,255,0.4)";
+      for(var r=by+4;r<68;r+=8){
+        ctx.fillRect(b.x+4,r,3,3);
+        ctx.fillRect(b.x+b.w-7,r,3,3);
+      }
+    }
+  }
+}
+
 function draw(){
-  ctx.fillStyle="#0a0f1f";
-  ctx.fillRect(0,0,W,H);
-  ctx.fillStyle="#151b30";
-  ctx.fillRect(ROAD_L,0,ROAD_R-ROAD_L,H);
-  ctx.strokeStyle="rgba(255,255,255,.25)";
-  ctx.setLineDash([22,16]);
+  ctx.save();
+  if(screenShake>0){
+    var sx=(Math.random()-0.5)*screenShake;
+    var sy=(Math.random()-0.5)*screenShake;
+    ctx.translate(sx,sy);
+  }
+
+  // Space/Sky gradient above road
+  var skyGrad=ctx.createLinearGradient(0,0,0,80);
+  skyGrad.addColorStop(0,"#02040a");
+  skyGrad.addColorStop(1,"#080f22");
+  ctx.fillStyle=skyGrad;
+  ctx.fillRect(0,0,W,80);
+
+  drawSkyline();
+
+  // Highway Asphalt with Depth Lighting
+  var roadGrad=ctx.createLinearGradient(0,70,0,H);
+  roadGrad.addColorStop(0,"#0b1226");
+  roadGrad.addColorStop(0.5,"#070d1a");
+  roadGrad.addColorStop(1,"#040711");
+  ctx.fillStyle=roadGrad;
+  ctx.fillRect(ROAD_L,70,ROAD_R-ROAD_L,H-70);
+
+  // Speed Motion Warp Streaks during Nitro
+  if(nitroActive){
+    ctx.fillStyle="rgba(0,213,255,0.12)";
+    for(var sl=0;sl<10;sl++){
+      var stX=ROAD_L+Math.random()*(ROAD_R-ROAD_L);
+      ctx.fillRect(stX,70,2,H-70);
+    }
+  }
+
+  // Alternating Hazard Rumble Strips on Curbs
+  var curbStep=20;
+  for(var cy=70;cy<H;cy+=curbStep){
+    var isAlt=((cy+stripe*1.5)%40)<20;
+    ctx.fillStyle=isAlt?"#ff3d9a":"#00d5ff";
+    ctx.fillRect(ROAD_L-5,cy,5,curbStep);
+    ctx.fillRect(ROAD_R,cy,5,curbStep);
+  }
+
+  // Lane Divider Dashes
+  ctx.strokeStyle="rgba(0,213,255,0.4)";
+  ctx.setLineDash([26,20]);
   ctx.lineDashOffset=-stripe;
   ctx.lineWidth=3;
   for(var l=1;l<LANES;l++){
     var x=ROAD_L+LANE_W*l;
     ctx.beginPath();
-    ctx.moveTo(x,0);
+    ctx.moveTo(x,70);
     ctx.lineTo(x,H);
     ctx.stroke();
   }
   ctx.setLineDash([]);
-  ctx.strokeStyle="rgba(34,211,238,.4)";
-  ctx.lineWidth=4;
-  ctx.beginPath();ctx.moveTo(ROAD_L,0);ctx.lineTo(ROAD_L,H);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(ROAD_R,0);ctx.lineTo(ROAD_R,H);ctx.stroke();
-  var i;
-  for(i=0;i<cars.length;i++)drawCar(cars[i].x,cars[i].y,cars[i].w,cars[i].h,cars[i].color,false);
-  if(!over)drawCar(player.x,player.y,player.w,player.h,"#22d3ee",true);
-  if(paused){
-    ctx.fillStyle="rgba(5,7,15,.6)";
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle="#eef2ff";ctx.font="800 24px Segoe UI, Arial";ctx.textAlign="center";
-    ctx.fillText("⏸ PAUSED",W/2,H/2-6);
-    ctx.font="600 13px Segoe UI, Arial";ctx.fillStyle="#9aa7d0";
-    ctx.fillText("P diye continue koro",W/2,H/2+22);
+
+  // Outer Neon Guardrails
+  ctx.shadowColor="#00d5ff";
+  ctx.shadowBlur=10;
+  ctx.strokeStyle="#00d5ff";
+  ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(ROAD_L,70);ctx.lineTo(ROAD_L,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ROAD_R,70);ctx.lineTo(ROAD_R,H);ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // Streetlights flashing by
+  for(var lp=0;lp<lightPoles.length;lp++){
+    var pole=lightPoles[lp];
+    if(pole.y>70){
+      var px=pole.side<0?ROAD_L-14:ROAD_R+14;
+      // Pole
+      ctx.fillStyle="#475569";
+      ctx.fillRect(px-2,pole.y,4,22);
+      // Light aura
+      ctx.shadowColor="#ffb703";
+      ctx.shadowBlur=16;
+      ctx.fillStyle="rgba(255,183,3,0.85)";
+      ctx.beginPath();
+      ctx.arc(px,pole.y,5,0,Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur=0;
+    }
   }
+
+  // Draw 3D Rotating Golden NovaCoins
+  for(var cIdx=0;cIdx<coins.length;cIdx++){
+    var cn=coins[cIdx];
+    ctx.save();
+    ctx.translate(cn.x,cn.y);
+    var scaleX=Math.abs(Math.cos(cn.rot))*0.8+0.2;
+    ctx.scale(scaleX,1);
+
+    ctx.shadowColor="#ffb703";
+    ctx.shadowBlur=16;
+    ctx.fillStyle="#ffb703";
+    ctx.beginPath();
+    ctx.arc(0,0,cn.r,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+
+    ctx.fillStyle="#ffe259";
+    ctx.beginPath();
+    ctx.arc(0,0,cn.r-3,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#080b16";
+    ctx.font="bold 10px Orbitron, sans-serif";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText("N",0,1);
+    ctx.restore();
+  }
+
+  // Draw Traffic
+  for(var i=0;i<cars.length;i++){
+    drawCar(cars[i].x,cars[i].y,cars[i].w,cars[i].h,cars[i].color,false,0);
+  }
+
+  // Draw Particles
+  for(var pIdx=0;pIdx<particles.length;pIdx++){
+    var pt=particles[pIdx];
+    ctx.fillStyle=pt.color+pt.alpha+")";
+    ctx.beginPath();
+    ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // Draw Player Supercar
+  if(!over){
+    drawCar(player.x,player.y,player.w,player.h,nitroActive?"#00f5ff":"#00d5ff",true,player.tilt);
+  }
+
+  // Cockpit Heads-Up Reticle
+  ctx.strokeStyle="rgba(0,213,255,0.12)";
+  ctx.lineWidth=1;
+  ctx.strokeRect(player.x-10,player.y-10,player.w+20,player.h+20);
+
+  // Paused Hologram
+  if(paused){
+    ctx.fillStyle="rgba(2,4,10,0.8)";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#00d5ff";ctx.font="900 24px Orbitron, sans-serif";ctx.textAlign="center";
+    ctx.fillText("⏸ RACE PAUSED",W/2,H/2-8);
+    ctx.font="600 13px Poppins, sans-serif";ctx.fillStyle="#9fb1d1";
+    ctx.fillText("Press P or Tap to Resume Supercar",W/2,H/2+20);
+  }
+
+  ctx.restore();
 }
+
 function loop(){step();draw();requestAnimationFrame(loop);}
 function togglePause(){if(over||!running)return;paused=!paused;}
+
 document.addEventListener("keydown",function(e){
-  if(["ArrowLeft","ArrowRight"].indexOf(e.key)!==-1)e.preventDefault();
-  if(e.key==="ArrowLeft"||e.key==="a")move(-1);
-  if(e.key==="ArrowRight"||e.key==="d")move(1);
+  if(["ArrowLeft","ArrowRight","ArrowUp"," "].indexOf(e.key)!==-1)e.preventDefault();
+  if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A")move(-1);
+  if(e.key==="ArrowRight"||e.key==="d"||e.key==="D")move(1);
+  if(e.key===" "||e.key==="ArrowUp"||e.key==="w"||e.key==="W")triggerNitro(true);
   if(e.key==="p"||e.key==="P"||e.key==="Escape")togglePause();
 },{passive:false});
+
+document.addEventListener("keyup",function(e){
+  if(e.key===" "||e.key==="ArrowUp"||e.key==="w"||e.key==="W")triggerNitro(false);
+});
+
 leftBtn.addEventListener("click",function(){move(-1)});
 rightBtn.addEventListener("click",function(){move(1)});
+
+nitroBtn.addEventListener("mousedown",function(){triggerNitro(true)});
+nitroBtn.addEventListener("mouseup",function(){triggerNitro(false)});
+nitroBtn.addEventListener("touchstart",function(e){e.preventDefault();triggerNitro(true)},{passive:false});
+nitroBtn.addEventListener("touchend",function(e){e.preventDefault();triggerNitro(false)},{passive:false});
+
 var sx=0;
 document.addEventListener("touchstart",function(e){sx=e.touches[0].clientX},{passive:true});
 document.addEventListener("touchend",function(e){
   var dx=e.changedTouches[0].clientX-sx;
-  if(Math.abs(dx)<24)return;
+  if(Math.abs(dx)<20)return;
   move(dx>0?1:-1);
 },{passive:true});
+
 document.addEventListener("visibilitychange",function(){if(document.hidden&&running&&!over)paused=true;});
 restartBtn.addEventListener("click",reset);
 ovBtn.addEventListener("click",reset);
 pauseBtn.addEventListener("click",togglePause);
+
 reset();
 loop();
 })();

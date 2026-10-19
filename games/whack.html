@@ -42,7 +42,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
   <div class="combo" id="combo"></div>
   <div class="grid" id="grid"></div>
   <button class="btn" id="startBtn">▶ Shuru Kor</button>
-  <p class="hint">Mole ber hoyle taratari tap koro! 💣 bomb tap korle score kete jabe. Combo banale bonus point!</p>
+  <p class="hint">Whack cyber moles as they emerge! Avoid 💣 bombs to protect your score and build combos!</p>
 </div>
 
 <script>
@@ -128,8 +128,8 @@ function finish(){
   if(upHole){upHole.classList.remove("up","bombup");upHole=null}
   var b=best(),isBest=score>b;
   if(isBest){localStorage.setItem(BEST_KEY,String(score));best()}
-  comboEl.textContent=isBest?"🏆 NOTUN BEST! "+score:"Shesh! Score: "+score;
-  startBtn.textContent="🔁 Abar Khelun";
+  comboEl.textContent=isBest?"🏆 NEW BEST! "+score:"Time's Up! Score: "+score;
+  startBtn.textContent="🔁 Play Again";
   startBtn.style.display="";
 }
 

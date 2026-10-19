@@ -48,13 +48,13 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
   </div>
   <div class="board" id="board"></div>
   <button class="btn" id="restartBtn">🔄 Notun Khel</button>
-  <p class="hint">Dig mode-e tap kore khodao, Flag mode-e mine marked koro. Computer-e right-click-o flag kaj kore. Prothom click kokhono mine-e lage na.</p>
+  <p class="hint">Tap in Dig mode to uncover tiles, Flag mode to mark mines. Right-click flags on desktop. First click is always safe!</p>
 </div>
 
 <div class="overlay" id="ov">
   <h2 id="ovTitle"></h2>
   <p id="ovMsg"></p>
-  <button class="btn" id="ovBtn">🔁 Abar Kheln</button>
+  <button class="btn" id="ovBtn">🔁 Play Again</button>
 </div>
 
 <script>
@@ -152,7 +152,7 @@ function boom(idx){
   for(var i=0;i<N*N;i++){if(grid[i].mine)grid[i].open=true}
   draw();
   ovTitle.textContent="💥 Dham!";
-  ovMsg.textContent="Mine felo! Ar ekbar try koro — prothom click-e mine thake na.";
+  ovMsg.textContent="Detonated a mine! Try again — the first click is always safe.";
   ov.classList.add("show");
 }
 

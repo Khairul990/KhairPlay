@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Play Game | PlayNova</title>
-<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html">
-<meta property="og:title" content="Play Game | PlayNova">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://khairplay.vercel.app/public/brand/share-card.png">
-<meta property="og:site_name" content="PlayNova">
-  <meta name="description" content="Game kheln ekhon-e â€” free, fast ar smooth.">
-  <meta name="theme-color" content="#080B16">
+  <link rel="canonical" href="https://khairplay.vercel.app/pages/play.html">
+  <meta property="og:title" content="Play Game | PlayNova">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://khairplay.vercel.app/public/brand/share-card.png">
+  <meta property="og:site_name" content="PlayNova">
+  <meta name="description" content="Play instant free online games in high performance 60FPS on PlayNova.">
+  <meta name="theme-color" content="#060913">
   <link rel="icon" type="image/svg+xml" href="../public/brand/favicon.svg">
   <link rel="manifest" href="../manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Poppins:wght@400;500;600;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Poppins:wght@400;500;600;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -29,10 +29,10 @@
         <span>Play<span class="logo-grad">Nova</span></span>
       </a>
       <form class="nav-search" role="search" action="games.html" method="get">
-        <input type="search" name="q" placeholder="ðŸ”Ž Game khujun..." aria-label="Search games">
+        <input type="search" name="q" placeholder="🔍 Search games..." aria-label="Search games">
       </form>
       <button class="nav-random" type="button" title="Random Game" aria-label="Random game">&#127922;</button>
-      <button class="burger" aria-label="Menu">â˜°</button>
+      <button class="burger" aria-label="Menu">☰</button>
       <ul class="nav-links">
         <li><a href="../index.html">Home</a></li>
         <li><a href="games.html">All Games</a></li>
@@ -40,7 +40,7 @@
         <li><a href="games.html?cat=educational">Educational</a></li>
         <li><a href="games.html?cat=adult">Challenge</a></li>
         <li><a href="about.html">About</a></li>
-        <li><a class="nav-cta" href="games.html">â–¶ KHELUN</a></li>
+        <li><a class="nav-cta" href="games.html">▶ PLAY NOW</a></li>
       </ul>
     </div>
   </header>
@@ -55,26 +55,26 @@
       <div class="play-head">
         <h1><span id="gameIcon" aria-hidden="true">🎮</span> <span id="gameTitle">Game</span></h1>
         <div class="game-cat-tag" id="gameCatTag"></div>
-        <a class="back-link" href="games.html">← Pichone</a>
+        <a class="back-link" href="games.html">← Back to Games</a>
       </div>
 
       <div class="game-frame-box" id="gamePlayArea"></div>
 
       <div class="player-actions">
-        <button id="restartBtn" type="button" class="player-btn" title="Game ta abar shuru koro">&#8635; Restart</button>
-        <button id="fullscreenBtn" type="button" class="player-btn" title="Fullscreen">&#x26F6; Fullscreen</button>
-        <span class="player-note" id="playerNote">Pause ar onno controls nicher game er nichei ache.</span>
+        <button id="restartBtn" type="button" class="player-btn" title="Restart game session">↻ Restart Session</button>
+        <button id="fullscreenBtn" type="button" class="player-btn" title="Toggle Fullscreen">⛶ Fullscreen</button>
+        <span class="player-note" id="playerNote">Pause and interactive controls are accessible directly on the game screen.</span>
       </div>
 
       <div class="game-info-bar">
         <div>
-          <span id="gamePlayers">1 Player</span> &nbsp;Â·&nbsp;
-          <span class="controls-hint" id="gameControls">Controls: â€”</span>
+          <span id="gamePlayers">1 Player</span> &nbsp;•&nbsp;
+          <span class="controls-hint" id="gameControls">Controls: —</span>
         </div>
         <div class="share-row">
-          <button id="favBtn" type="button" class="fav-action" aria-pressed="false">♡ Favourite</button>
-          <button id="shareBtn">ðŸ”— Share</button>
-          <button id="copyBtn">ðŸ“‹ Copy Link</button>
+          <button id="favBtn" type="button" class="fav-action" aria-pressed="false">♡ Add to Favorites</button>
+          <button id="shareBtn">🔗 Share</button>
+          <button id="copyBtn">📋 Copy Link</button>
         </div>
       </div>
 
@@ -87,9 +87,9 @@
         <div class="ad-inner"><ins class="adsbygoogle" style="display:block"></ins></div>
       </div>
 
-      <div class="section-head" style="margin-top:10px">
-        <h2><span class="accent"></span>âž¡ï¸ Aro Games</h2>
-        <a href="games.html">Shob dekhun â†’</a>
+      <div class="section-head" style="margin-top:20px">
+        <h2><span class="accent"></span>🔥 You Might Also Enjoy</h2>
+        <a href="games.html">Explore All Games →</a>
       </div>
       <div class="game-grid" id="relatedGrid"></div>
     </div>
@@ -98,11 +98,13 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-bottom" style="border-top:0;margin-top:0">
-        Â© <span data-year></span> <span data-site-name>PlayNova</span>. All rights reserved.
+        &copy; <span data-year></span> <span data-site-name>PlayNova</span>. All rights reserved. PLAY • LEARN • EXPLORE.
       </div>
     </div>
   </footer>
 
+  <script src="../js/audio.js"></script>
+  <script src="../js/wallet.js"></script>
   <script src="../js/games-data.js"></script>
   <script src="../js/main.js"></script>
   <script src="../js/progress.js"></script>
