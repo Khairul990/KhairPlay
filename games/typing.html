@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Typing Speed</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=typing">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
@@ -34,6 +35,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
 </style>
 </head>
 <body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Typing Speed — PlayNova</h1>
 <div class="wrap">
   <div class="title">Typing Speed</div>
   <div class="hud">
@@ -43,7 +45,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
     <div class="pill">Best: <b id="best">—</b></div>
   </div>
   <div class="words" id="words"></div>
-  <div class="inputBox"><input id="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type here... (shuru holle timer start hobe)" disabled></div>
+  <div class="inputBox"><input id="input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type here... (timer starts on first keystroke)" disabled></div>
   <button class="btn" id="startBtn">▶ Shuru Kor</button>
   <div class="result" id="result">
     <h2 id="resTitle"></h2>
@@ -53,7 +55,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
       <div>Words<b id="resWords">0</b></div>
       <div>Errors<b id="resErr">0</b></div>
     </div>
-    <button class="btn" id="againBtn">🔁 Abar Khelun</button>
+    <button class="btn" id="againBtn">🔁 Play Again</button>
   </div>
   <p class="hint">60 second-e joto beshi shabdho type korte paro toto WPM (words per minute) barbe. Shuddho thakle accuracy 100% thakbe.</p>
 </div>
@@ -132,7 +134,7 @@ function finish(){
   var b=best();
   var isBest=r.wpm>b;
   if(isBest){localStorage.setItem(BEST_KEY,String(r.wpm));best()}
-  resTitle.textContent=isBest?"🏆 NOTUN BEST!":"⏱ Shesh!";
+  resTitle.textContent=isBest?"🏆 NEW BEST SPEED!":"⏱ Speed Test Complete!";
   resWpm.textContent=r.wpm;resAcc.textContent=r.acc+"%";
   resWords.textContent=r.words;resErr.textContent=r.errors;
   resultEl.classList.add("show");

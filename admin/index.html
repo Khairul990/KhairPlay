@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control Panel — PlayNova</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#080B16">
+  <meta name="theme-color" content="#060913">
   <link rel="icon" type="image/svg+xml" href="../public/brand/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -20,32 +20,31 @@
   <div id="loginScreen" class="login-wrap">
     <div class="login-card">
       <h1>⚡ PlayNova Control Panel</h1>
-      <p>Site manage korar jonno login korun.</p>
+      <p>Authenticate to manage games, ads, and platform configuration.</p>
       <div class="demo-banner">
-        ⚠️ <b>DEMO / LOCAL MODE</b> — Eta ekta browser-based panel. Login ar password shudhu apnar device-e (localStorage/sessionStorage) thake, kono server-side security nai. Production site-e <b>hosting-level password protection</b> (jemon .htaccess / directory privacy) chara hole eta jeno keu-keu bole password vete parbe — tai nischit koren.
+        ⚠️ <b>ADMIN LOCAL MODE</b> — This is a client-side administrator dashboard. Credentials and draft settings are stored locally in your browser storage.
       </div>
       <form id="setupForm" class="hidden">
-        <h2 style="margin-top:16px;font-size:16px">🔑 Prothom Bar Password Set Korun</h2>
-        <p>Purano default credential (admin / REMOVED) amra sorie diyechi — sheta public repo-te chilo, tai insecure. Notun ekta nijer nam ar password boshan.</p>
+        <h2 style="margin-top:16px;font-size:16px">🔑 Set Initial Administrator Credentials</h2>
+        <p>No default password is set. Please create your personalized username and password below.</p>
         <label class="f">User Name</label>
         <input class="f" id="setupUser" autocomplete="username" required>
-        <label class="f">Password <span>(min 6 character)</span></label>
+        <label class="f">Password <span>(min 6 characters)</span></label>
         <input class="f" id="setupPass" type="password" autocomplete="new-password" minlength="6" required>
-        <label class="f">Password Abaar Likun</label>
+        <label class="f">Confirm Password</label>
         <input class="f" id="setupPass2" type="password" autocomplete="new-password" minlength="6" required>
-        <button class="btn" type="submit">🔒 Password Save (Draft)</button>
+        <button class="btn" type="submit">🔒 Save Credentials (Draft)</button>
         <p id="setupHint" style="margin-top:12px;color:#FFB020;font-size:13px"></p>
-        <p class="mini-note">💡 Save korle draft-e thakbe. Site live korle Export/Import theke games-data.js download kore upload korun — tokhon password settings o live hobe. Hostinger/Netlify-e directory protection chara hole extra layer hisebe thik.</p>
       </form>
       <form id="loginForm">
         <label class="f">User Name</label>
         <input class="f" id="loginUser" autocomplete="username" required>
         <label class="f">Password</label>
         <input class="f" id="loginPass" type="password" autocomplete="current-password" required>
-        <button class="btn" type="submit">🔓 Login</button>
+        <button class="btn" type="submit">🔓 Log In</button>
         <p id="loginHint" style="margin-top:12px;color:#FFB020;font-size:13px"></p>
       </form>
-      <p style="margin-top:16px"><a href="../index.html" style="color:var(--brand-2);font-size:13px">← Site-e fire jan</a></p>
+      <p style="margin-top:16px"><a href="../index.html" style="color:var(--brand-2);font-size:13px">← Return to Main Site</a></p>
     </div>
   </div>
 
@@ -55,21 +54,21 @@
       <div class="container topbar-in">
         <div class="brand">
           <div class="ico">⚡</div>
-          <div>PlayNova <small>Control Panel — Demo/Local Mode</small></div>
+          <div>PlayNova <small>Control Center</small></div>
         </div>
         <div class="top-actions">
-          <a class="btn small ghost" href="../index.html" target="_blank">🌐 Site Dekhun</a>
-          <button class="btn small ghost" id="logoutBtn">🚪 Logout</button>
+          <a class="btn small ghost" href="../index.html" target="_blank">🌐 View Live Site</a>
+          <button class="btn small ghost" id="logoutBtn">🚪 Log Out</button>
         </div>
       </div>
     </header>
 
     <div class="container">
       <div id="draftBanner" class="note hidden" style="margin-top:14px">
-        📝 Ei browser-e ekta <b>draft</b> ache jeta live file theke alada. Niche "Export / Import" tab-e giye file download kore upload korun, ba draft moriye live file load korun.
+        📝 You have unsaved <b>draft changes</b> stored locally. Go to "Export / Import" to download your updated `games-data.js` file.
       </div>
       <div id="publishBar" class="note hidden" style="margin-top:14px">
-        🚀 Poribortan draft-e save hoyeche — <b>live korte</b>: Export / Import tab → "games-data.js Download" → hosting-er file manager-e giye <b>js/games-data.js</b> replace korun.
+        🚀 Changes saved to draft! To publish live: Export / Import → "Download games-data.js" → replace <b>js/games-data.js</b> in your hosting file manager.
       </div>
 
       <nav class="tabs">
@@ -83,25 +82,25 @@
       <!-- DASHBOARD -->
       <section id="tabDash" class="tab-panel active">
         <div class="stats">
-          <div class="stat-box"><b id="statGames">—</b><span>Enabled / Total Games</span></div>
-          <div class="stat-box"><b id="statFeatured">—</b><span>Featured Games</span></div>
-          <div class="stat-box"><b id="statPlays">—</b><span>Plays (Ei Device)</span></div>
+          <div class="stat-box"><b id="statGames">—</b><span>Active / Total Games</span></div>
+          <div class="stat-box"><b id="statFeatured">—</b><span>Featured Titles</span></div>
+          <div class="stat-box"><b id="statPlays">—</b><span>Plays (This Device)</span></div>
           <div class="stat-box"><b id="statAds">—</b><span>AdSense Status</span></div>
         </div>
 
         <div class="card">
-          <h2>🏆 High Scores (Ei Device)</h2>
-          <p id="bestNote">Stats shudhu apnar nijer device-e save hoy — puro bishwer shobai er nam na. Boro traffic-er real hisab paihte Google AdSense ar hosting-er analytics dekhben.</p>
+          <h2>🏆 Local Leaderboard Records</h2>
+          <p id="bestNote">High scores achieved on this local testing session.</p>
           <div id="bestScores"></div>
         </div>
 
         <div class="card">
           <h2>⚡ Quick Actions</h2>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-            <button class="btn" onclick="document.querySelector('[data-tab=tabGames]').click()">🎮 Games Manage</button>
+            <button class="btn" onclick="document.querySelector('[data-tab=tabGames]').click()">🎮 Manage Games</button>
             <button class="btn ghost" onclick="document.querySelector('[data-tab=tabSettings]').click()">⚙️ AdSense Setup</button>
-            <button class="btn ghost" onclick="document.querySelector('[data-tab=tabExport]').click()">📤 Export File</button>
-            <a class="btn ghost" href="../pages/games.html" target="_blank">▶ Site Live</a>
+            <button class="btn ghost" onclick="document.querySelector('[data-tab=tabExport]').click()">📤 Export Data File</button>
+            <a class="btn ghost" href="../pages/games.html" target="_blank">▶ Public Arcade</a>
           </div>
         </div>
       </section>
@@ -111,48 +110,48 @@
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
             <div>
-              <h2>🎮 Shob Games</h2>
-              <p>Enable/disable, edit, notun game add — sob ekhanei.</p>
+              <h2>🎮 Games Registry</h2>
+              <p>Enable, disable, reorder, edit, and register new HTML5 game engines.</p>
             </div>
-            <button class="btn" id="addGameBtn">➕ Notun Game</button>
+            <button class="btn" id="addGameBtn">➕ Add New Game</button>
           </div>
           <div style="margin-top:16px" class="game-list" id="gameList"></div>
         </div>
 
         <div class="form-box" id="gameForm">
-          <h2 id="gfTitle">➕ Notun Game</h2>
+          <h2 id="gfTitle">➕ Add Game</h2>
           <div class="row">
             <div>
-              <label class="f">Game ID <span>(unique, chhoto-harfe — jemon: snake)</span></label>
+              <label class="f">Game ID <span>(unique alphanumeric slug, e.g. cyber-racer)</span></label>
               <input class="f" id="gf_id" placeholder="my-game">
             </div>
             <div>
               <label class="f">Title</label>
-              <input class="f" id="gf_title" placeholder="Game er nam">
+              <input class="f" id="gf_title" placeholder="Game Name">
             </div>
           </div>
           <div class="row3">
             <div>
               <label class="f">Category</label>
               <select class="f" id="gf_category">
-                <option value="kids">🧸 Kids</option>
-                <option value="educational">🎓 Educational</option>
-                <option value="adult">🎯 Challenge</option>
+                <option value="kids">🧸 Kids & Family</option>
+                <option value="educational">🎓 Educational & Brain</option>
+                <option value="adult">🎯 Challenge & Arcade</option>
               </select>
             </div>
             <div>
-              <label class="f">Icon (emoji)</label>
+              <label class="f">Icon (Emoji)</label>
               <input class="f" id="gf_icon" placeholder="🎮">
             </div>
             <div>
-              <label class="f">Color (hex)</label>
+              <label class="f">Accent Color (Hex)</label>
               <input class="f" id="gf_color" type="color" value="#7C4DFF" style="height:44px;padding:4px">
             </div>
           </div>
-          <label class="f">Tags <span>(comma diye alada — jemon: puzzle, brain, easy)</span></label>
-          <input class="f" id="gf_tags" placeholder="puzzle, easy">
-          <label class="f">Description <span>(chhoto, attractive — card-e dekhabe)</span></label>
-          <textarea class="f" id="gf_desc" placeholder="Game-ti ki?"></textarea>
+          <label class="f">Tags <span>(comma separated, e.g. arcade, speed, 3d)</span></label>
+          <input class="f" id="gf_tags" placeholder="arcade, speed, 3d">
+          <label class="f">Description <span>(concise summary shown on cards)</span></label>
+          <textarea class="f" id="gf_desc" placeholder="Game description..."></textarea>
           <div class="row">
             <div>
               <label class="f">Players</label>
@@ -160,15 +159,15 @@
             </div>
             <div>
               <label class="f">Controls</label>
-              <input class="f" id="gf_controls" placeholder="Click / Tap">
+              <input class="f" id="gf_controls" placeholder="Keyboard / Touch">
             </div>
           </div>
-          <label class="f">Game File Path <span>(games folder-er vitorer file — notun game HTML upload korle ekhane path dite hobe)</span></label>
+          <label class="f">Game Engine File Path <span>(relative path, e.g. games/my-game.html)</span></label>
           <input class="f" id="gf_iframe" placeholder="games/my-game.html">
-          <div class="switch"><input type="checkbox" id="gf_featured"><span>⭐ Featured (home page-e dekhabe)</span></div>
-          <div class="switch"><input type="checkbox" id="gf_enabled" checked><span>✅ Enabled (site-e thakbe)</span></div>
+          <div class="switch"><input type="checkbox" id="gf_featured"><span>⭐ Featured (Display on homepage hero/featured list)</span></div>
+          <div class="switch"><input type="checkbox" id="gf_enabled" checked><span>✅ Enabled (Visible in public directory)</span></div>
           <div style="display:flex;gap:10px;margin-top:18px">
-            <button class="btn" id="gfSave">💾 Save (Draft)</button>
+            <button class="btn" id="gfSave">💾 Save to Draft</button>
             <button class="btn ghost" id="gfCancel">Cancel</button>
           </div>
         </div>
@@ -178,95 +177,93 @@
       <section id="tabSettings" class="tab-panel">
         <form id="settingsForm">
           <div class="card">
-            <h2>⚙️ Site Settings</h2>
+            <h2>⚙️ Platform Settings</h2>
             <div class="row">
               <div>
-                <label class="f">Site Name</label>
+                <label class="f">Portal Name</label>
                 <input class="f" id="s_name">
               </div>
               <div>
-                <label class="f">Tagline</label>
+                <label class="f">Brand Tagline</label>
                 <input class="f" id="s_tagline">
               </div>
             </div>
-            <label class="f">Contact Email <span>(contact page-e dekhabe)</span></label>
-            <input class="f" id="s_email" type="email" placeholder="apnar@email.com">
-            <label class="f">Announcement Bar <span>(site-r opar ekti chokre porar moto line — khali rakhte parben)</span></label>
-            <input class="f" id="s_ann" placeholder="Jemon: Notun game eloyeche — khelun!">
-            <div class="switch"><input type="checkbox" id="s_annOn"><span>📢 Announcement dekhao</span></div>
+            <label class="f">Support Contact Email</label>
+            <input class="f" id="s_email" type="email" placeholder="admin@domain.com">
+            <label class="f">Announcement Banner Message</label>
+            <input class="f" id="s_ann" placeholder="Welcome to PlayNova Next-Gen!">
+            <div class="switch"><input type="checkbox" id="s_annOn"><span>📢 Show Announcement Banner</span></div>
           </div>
 
           <div class="card">
-            <h2>📢 Google AdSense</h2>
-            <p>Ei field guloi apnar income directly nirbhor kore — thik kore bhoren.</p>
-            <label class="f">AdSense Client ID <span>(format: ca-pub-XXXXXXXXXXXXXXXX — AdSense dashboard-e "Accounts" page-e paben)</span></label>
+            <h2>📢 Google AdSense Integration</h2>
+            <p>Configure publisher credentials to monetize your gaming portal.</p>
+            <label class="f">AdSense Publisher ID <span>(format: ca-pub-XXXXXXXXXXXXXXXX)</span></label>
             <input class="f" id="s_client" placeholder="ca-pub-0000000000000000">
-            <div id="adStatus" class="note">⏳ Ekhone real Client ID nai.</div>
+            <div id="adStatus" class="note">⏳ No live publisher ID configured.</div>
             <div class="row3" style="margin-top:8px">
               <div>
-                <label class="f">Slot ID — Top <span>(home page-er uporer ad)</span></label>
+                <label class="f">Top Banner Slot ID</label>
                 <input class="f" id="s_slotTop" placeholder="1234567890" inputmode="numeric">
               </div>
               <div>
-                <label class="f">Slot ID — Mid <span>(games list/section er ad)</span></label>
+                <label class="f">Mid Responsive Slot ID</label>
                 <input class="f" id="s_slotMid" placeholder="1234567890" inputmode="numeric">
               </div>
               <div>
-                <label class="f">Slot ID — Bottom</label>
+                <label class="f">Bottom Banner Slot ID</label>
                 <input class="f" id="s_slotBottom" placeholder="1234567890" inputmode="numeric">
               </div>
             </div>
-            <div class="switch"><input type="checkbox" id="s_adsOn"><span>✅ Ads enabled</span></div>
-            <label class="f">Minimum seconds between ad loads <span>(beshi kom hole page slow hote pare ar policy risk — 20-30 thik)</span></label>
+            <div class="switch"><input type="checkbox" id="s_adsOn"><span>✅ Enable AdSense Ads</span></div>
+            <label class="f">Minimum seconds between ad impressions</label>
             <input class="f" id="s_minSec" type="number" min="0" max="120">
-            <p class="mini-note">💡 Ad gula ekhon viewport-e nakele load hore (lazy) — eta viewability baray, CPM better hoy. Play page-e ad game-er niche-i thake, game-er upore na — policy safe.</p>
           </div>
 
           <div class="card">
-            <h2>🔐 Panel Login</h2>
+            <h2>🔐 Control Panel Access</h2>
             <div class="row">
               <div>
-                <label class="f">User Name</label>
+                <label class="f">Administrator Username</label>
                 <input class="f" id="s_user">
               </div>
               <div>
-                <label class="f">Password</label>
+                <label class="f">Administrator Password</label>
                 <input class="f" id="s_pass">
               </div>
             </div>
-            <p class="mini-note">⚠️ Sob kichhu static site-e hocche — eta basic obscurity, puro security na. Live site-e apni hosting panel-e extra directory protection (Password Protection / .htaccess) chara parben.</p>
           </div>
 
-          <button class="btn" type="submit">💾 Save Settings (Draft)</button>
+          <button class="btn" type="submit">💾 Save Settings to Draft</button>
         </form>
       </section>
 
       <!-- EXPORT -->
       <section id="tabExport" class="tab-panel">
         <div class="card">
-          <h2>📤 Live Korar Niymo (Export → Upload)</h2>
-          <ol style="padding-left:20px;color:var(--muted);font-size:14px">
-            <li>Niche <b>"games-data.js Download"</b> button-e click korun — notun file download hobe.</li>
-            <li>Hosting-er <b>File Manager</b> (ba FTP app) khulun.</li>
-            <li><b>js/games-data.js</b> file-ta peye <b>notun file diye replace</b> korun (same name-e, js folder-e).</li>
-            <li>Site refresh korle notun changes live!</li>
+          <h2>📤 Publishing Workflow (Export → Upload)</h2>
+          <ol style="padding-left:20px;color:var(--muted);font-size:14px;line-height:1.7">
+            <li>Click <b>"Download games-data.js"</b> below to export your finalized platform configuration.</li>
+            <li>Open your hosting provider's <b>File Manager</b> or FTP client (e.g. Netlify, Vercel, Hostinger).</li>
+            <li>Replace the existing <b>js/games-data.js</b> file in the `js/` directory with your newly downloaded file.</li>
+            <li>Reload your live website to see all updates take effect immediately!</li>
           </ol>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-            <button class="btn" id="exportBtn">⬇️ games-data.js Download</button>
-            <button class="btn ghost" id="loadLiveBtn">📄 Live File Abaar Load</button>
-            <button class="btn danger" id="resetDraftBtn">🧹 Draft Reset</button>
+            <button class="btn" id="exportBtn">⬇️ Download games-data.js</button>
+            <button class="btn ghost" id="loadLiveBtn">📄 Reload from Live File</button>
+            <button class="btn danger" id="resetDraftBtn">🧹 Reset Local Draft</button>
           </div>
         </div>
 
         <div class="card">
-          <h2>📥 Import (purano file abaar edit korar jonno)</h2>
-          <p>Hosting-e jodi already different kichu thake, sheta import kore edit korte paren. Export-er file-i import korlei shob thik thake.</p>
-          <label class="f">games-data.js file bachen</label>
+          <h2>📥 Import Existing Configuration</h2>
+          <p>Import an existing `games-data.js` file to modify settings in this dashboard.</p>
+          <label class="f">Select games-data.js file</label>
           <input type="file" id="importFile" accept=".js" style="font-size:13px">
         </div>
 
         <div class="card">
-          <h2>👀 File Preview (prothom 600 character)</h2>
+          <h2>👀 Data Preview</h2>
           <div class="code" id="exportPreview"></div>
         </div>
       </section>
@@ -274,70 +271,12 @@
       <!-- GUIDE -->
       <section id="tabGuide" class="tab-panel guide">
         <div class="card">
-          <h2>🚀 1. Site Live Korar Steps (Code Na Janle O)</h2>
-          <ol>
-            <li><b>Free hosting nichhen:</b> <a href="https://www.netlify.com/" target="_blank" rel="noopener" style="color:var(--brand-2)">Netlify</a>-e janun → Sign up (GitHub ba email diye) → "Add new site" → "Deploy manually" → pura <b>Game_Version_1</b> folder drag-drop korun. 1 minute-e site ready, URL paben.</li>
-            <li><b>Domain:</b> Netlify free subdomain diye shuru korun (jemon playnova.netlify.app). Pore custom domain (jemon playnova.com) Netlify thekei nite parben — dorkar nai ekhono.</li>
-            <li><b>Folder structure intact rakhben:</b> index.html folder-r root-e, games/ pages/ css/ js/ admin/ — kichu rename/sorryben na.</li>
-            <li><b>Update:</b> kono kichu bodlate Control Panel-e edit → Export → file manager-e replace. Done.</li>
+          <h2>🚀 Deployment & Hosting</h2>
+          <ol style="line-height:1.8">
+            <li><b>Free Global CDN Deployment:</b> Deploy effortlessly on <a href="https://vercel.com" target="_blank" rel="noopener" style="color:var(--brand-2)">Vercel</a> or <a href="https://netlify.com" target="_blank" rel="noopener" style="color:var(--brand-2)">Netlify</a>. Drag-and-drop the root folder for instant global HTTPS hosting with 99.99% uptime.</li>
+            <li><b>Custom Domain:</b> Connect your custom `.com` or `.io` domain in your hosting dashboard under Domain Settings.</li>
+            <li><b>Zero Database Requirement:</b> The entire arcade runs statically with client-side state, meaning zero server maintenance and blazing fast speed worldwide.</li>
           </ol>
-        </div>
-
-        <div class="card">
-          <h2>💰 2. AdSense Approve Howar Checklist</h2>
-          <p>Google 100% manush dekhei approve dey — checklist follow korle chance onek beshi:</p>
-          <div style="margin-top:12px">
-            <label class="check"><input type="checkbox"><span><b>SSL (https):</b> Netlify-e automatically thake. Custom domain-e o thakbe.</span></label>
-            <label class="check"><input type="checkbox"><span><b>Privacy Policy, Terms, About, Contact page:</b> ✅ Already ready — footer-e ache.</span></label>
-            <label class="check"><input type="checkbox"><span><b>ads.txt:</b> AdSense theke pub ID pele, Netlify dashboard-e <b>Site settings → Access control → Managed proxy / Redirects</b> na — NETLIFY TOML use korun. Prothom line-ta niche "ads.txt content" theke copy kore root-e <b>ads.txt</b> file banan (ba hosting file manager-e).</span></label>
-            <label class="check"><input type="checkbox"><span><b>Notun Ad Unit:</b> AdSense dashboard-e "Ads → By ad unit → Display ads" → notun unit banan → oi unit-er <b>data-ad-slot</b> number Settings-e Slot fields-e boshan.</span></label>
-            <label class="check"><input type="checkbox"><span><b>Tolestoy content:</b> Sob game live, kono broken link nai, description unique — ✅ ekhon-i ache.</span></label>
-            <label class="check"><input type="checkbox"><span><b>Mobile friendly:</b> ✅ Sob page responsive.</span></label>
-            <label class="check"><input type="checkbox"><span><b>Traffic:</b> AdSense apply korar age olpo kichu traffic thakleo bhalo — Facebook page, YouTube, WhatsApp group-e share korun. AdSense app "Sites" tab-e site add kore review daben.</span></label>
-            <label class="check"><input type="checkbox"><span><b>Review somoy:</b> 1-4 saptaho lagte pare. Review somoye ad off/few thakte pare — policy violation na.</span></label>
-            <label class="check"><input type="checkbox"><span><b>Banned kaj gula koren na:</b> nijer diye na, na kauke bole click koren — ekta vabe account bondho hote pare.</span></label>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>📄 3. ads.txt Content</h2>
-          <p>Apnar real Client ID pele button-e click kore copy kore root-e ads.txt file-e paste korun:</p>
-          <div class="code">google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0</div>
-          <button class="btn small" id="copyAdsTxt">📋 Copy (Client ID bosha thakle apnar real ID diye)</button>
-          <p class="mini-note">Netlify-e: Site settings → "Build & deploy" → "Post-processing" → "Ad inventory declarations" jodi na thake, ekta notun file banan nam <b>ads.txt</b> folder-r root-e (index.html er sathe) — Netlify auto root-e serve kore.</p>
-        </div>
-
-        <div class="card">
-          <h2>📈 4. Income Baranor Upay</h2>
-          <ul>
-            <li>🔹 <b>Ad placement:</b> ekhon placement balanced — top banner (home), mid (home/games), bottom (play page game-er niche). Eta user-ke birokti korbe na, ar view o beshi hobe.</li>
-            <li>🔹 <b>Content baran:</b> proti saptaho 1-2 notun game add korun — Google index-e notun page hole organic traffic ashe.</li>
-            <li>🔹 <b>SEO:</b> title/description unique rakhben — game er description apnar style-e likhun.</li>
-            <li>🔹 <b>Social:</b> Facebook page / YouTube Shorts-e gameplay clip baniye link dicchen — bacchhader jonno kids games khub viral hoy.</li>
-            <li>🔹 <b>Ad balance:</b> kono ad slot-e ekshathe 1-2 beshi ad dhorben na — auto ads On kore rakhteo parben AdSense theke (Settings-e ki korchi seta apni decide).</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h2>🔐 5. Security Note (Honestly)</h2>
-          <p>Ei panel ekta <b>demo/local-mode</b> tool — browser-ei kaj kore. Purano default password (<b>REMOVED</b>) public repo-te chilo — sheta keu-keu dekhte ba brute-force korte parete. Sejonno oi default credential ekhon sob file theke <b>sorie fela hoyeche</b> — prothom bar panel-e asle nijer password set korte hobe.</p>
-          <ul>
-            <li>🔹 Password ar login info shudhu apnar device-e (localStorage/sessionStorage) thake — server-e kichu jay na.</li>
-            <li>🔹 Kintu static site-e password file-ei thakbe — mane technically HTML/JS theke dekhte parbe. Eta "obscurity", puro security na.</li>
-            <li>🔹 Panel link footer-e ache, kintu noindex — Google-e ashbe na.</li>
-            <li>🔹 <b>Live site-e extra layer chara parben na:</b> hosting panel-e directory protection (Hostinger cPanel "Directory Privacy" / .htaccess auth, ba password-protected preview).</li>
-            <li>🔹 Strong, unique password boshan ar somoy somoye bodlen.</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h2>🆘 6. Kono Samossa Hole</h2>
-          <ul>
-            <li>🔹 Site blank? → File manager-e check korun js/games-data.js ache ki.</li>
-            <li>🔹 Draft dekhacche kintu live hoyna? → Export/Import tab-e ashen, file download kore replace bhulo to na?</li>
-            <li>🔹 Ad nei? → Client ID + Slot ID diye disen ki check korun, ar ads.txt root-e ache ki.</li>
-            <li>🔹 Game kaj kortese na? → Games tab-e Preview click kore dekhun, ar file path thik ache ki (games/ folder-e HTML file ache ki).</li>
-          </ul>
         </div>
       </section>
     </div>

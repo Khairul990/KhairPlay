@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Whack-a-Mole</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=whack">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
@@ -30,6 +31,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
 </style>
 </head>
 <body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Whack-a-Mole — PlayNova</h1>
 <div class="wrap">
   <div class="title">Whack-a-Mole</div>
   <div class="hud">
@@ -40,7 +42,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
   <div class="combo" id="combo"></div>
   <div class="grid" id="grid"></div>
   <button class="btn" id="startBtn">▶ Shuru Kor</button>
-  <p class="hint">Mole ber hoyle taratari tap koro! 💣 bomb tap korle score kete jabe. Combo banale bonus point!</p>
+  <p class="hint">Whack cyber moles as they emerge! Avoid 💣 bombs to protect your score and build combos!</p>
 </div>
 
 <script>
@@ -126,8 +128,8 @@ function finish(){
   if(upHole){upHole.classList.remove("up","bombup");upHole=null}
   var b=best(),isBest=score>b;
   if(isBest){localStorage.setItem(BEST_KEY,String(score));best()}
-  comboEl.textContent=isBest?"🏆 NOTUN BEST! "+score:"Shesh! Score: "+score;
-  startBtn.textContent="🔁 Abar Khelun";
+  comboEl.textContent=isBest?"🏆 NEW BEST! "+score:"Time's Up! Score: "+score;
+  startBtn.textContent="🔁 Play Again";
   startBtn.style.display="";
 }
 

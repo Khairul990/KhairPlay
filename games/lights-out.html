@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lights Out</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=lights-out">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:14px}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:700}
+.modes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.mode-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#9aa7d0;padding:9px 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+.mode-btn.active{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border-color:transparent}
+#msg{font-size:17px;font-weight:700;min-height:26px;text-align:center}
+.hint{color:#9aa7d0;font-size:13px;text-align:center;max-width:430px}
+.board{display:grid;gap:9px;padding:12px;background:#0b1024;border:1px solid rgba(255,255,255,.1);border-radius:16px;touch-action:manipulation}
+.cell{aspect-ratio:1;width:clamp(46px,12vw,64px);border-radius:12px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+  border:1px solid rgba(255,255,255,.1);background:#111834;transition:background .18s,box-shadow .18s,transform .1s}
+.cell:active{transform:scale(.94)}
+.cell.on{background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 60%,#b45309);border-color:#fbbf24;
+  box-shadow:0 0 18px rgba(245,158,11,.55)}
+.cell:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
+.win{background:radial-gradient(circle at 35% 30%,#86efac,#22c55e 60%,#15803d)!important;border-color:#4ade80!important;box-shadow:0 0 18px rgba(34,197,94,.5)!important}
+.btn{background:linear-gradient(135deg,#6d5dfc,#22d3ee);color:#071026;border:0;padding:11px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer}
+</style>
+</head>
+<body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Lights Out — PlayNova</h1>
+<div class="wrap">
+  <div class="modes">
+    <button class="mode-btn" id="m4">4 x 4 Soft</button>
+    <button class="mode-btn active" id="m5">5 x 5 Classic</button>
+  </div>
+  <div class="hud">
+    <div class="pill">Moves: <b id="moves">0</b></div>
+    <div class="pill">Lights left: <b id="left">0</b></div>
+    <div class="pill">Best: <b id="best">-</b></div>
+  </div>
+  <div id="msg">Shob light off kore din!</div>
+  <div class="hint">Ekta light click korle sheta ar tar charpashechara light gulo change hoy. Shob off korlei jita jabe.</div>
+  <div class="board" id="board"></div>
+  <button class="btn" id="resetBtn">↻ Notun Puzzle</button>
+</div>
+<script>
+(function(){
+"use strict";
+var boardEl=document.getElementById("board"),msg=document.getElementById("msg"),
+    movesEl=document.getElementById("moves"),leftEl=document.getElementById("left"),bestEl=document.getElementById("best"),
+    resetBtn=document.getElementById("resetBtn"),m4=document.getElementById("m4"),m5=document.getElementById("m5");
+var size=5,grid=[],moves=0,over=false;
+var BEST_KEY="gvp_lights_best";
+
+function bestKey(){return BEST_KEY+"_"+size;}
+function loadBest(){
+  var b="";
+  try{b=localStorage.getItem(bestKey())||"";}catch(e){}
+  bestEl.textContent=b?b+" moves":"-";
+}
+function saveBest(n){
+  try{
+    var cur=parseInt(localStorage.getItem(bestKey())||"0",10);
+    if(!cur||n<cur){localStorage.setItem(bestKey(),String(n));loadBest();return true;}
+  }catch(e){}
+  return false;
+}
+function countLeft(){
+  var n=0;
+  for(var i=0;i<grid.length;i++)if(grid[i])n++;
+  return n;
+}
+function render(){
+  var html="";
+  for(var i=0;i<grid.length;i++){
+    var r=Math.floor(i/size),c=i%size;
+    html+='<div class="cell'+(grid[i]?" on":"")+'" data-i="'+i+'" role="button" tabindex="0" '+
+          'aria-pressed="'+(grid[i]?"true":"false")+'" aria-label="Row '+(r+1)+' column '+(c+1)+'"></div>';
+  }
+  boardEl.innerHTML=html;
+}
+function affected(i){
+  var r=Math.floor(i/size),c=i%size,out=[i];
+  if(r>0)out.push(i-size);
+  if(r<size-1)out.push(i+size);
+  if(c>0)out.push(i-1);
+  if(c<size-1)out.push(i+1);
+  return out;
+}
+function toggle(i){
+  var list=affected(i);
+  for(var k=0;k<list.length;k++)grid[list[k]]=grid[list[k]]?0:1;
+}
+function updateHud(){
+  movesEl.textContent=moves;
+  var left=countLeft();
+  leftEl.textContent=left;
+  return left;
+}
+function press(i,fromReset){
+  if(over)return;
+  if(!fromReset){moves++;startHint();}
+  toggle(i);
+  render();
+  var left=updateHud();
+  if(left===0){
+    over=true;
+    var record=saveBest(moves);
+    msg.textContent=record?"🏆 Notun best! "+moves+" moves-e shob off!":"🏆 Shob light off! "+moves+" moves-e solve.";
+    var cells=boardEl.querySelectorAll(".cell");
+    for(var k=0;k<cells.length;k++)cells[k].classList.add("win");
+  }
+}
+function startHint(){msg.textContent="Ar ektu — baki ache!";}
+function newGame(){
+  over=false;moves=0;
+  grid=[];
+  for(var i=0;i<size*size;i++)grid.push(0);
+  var seed=count();
+  for(var n=0;n<seed;n++)toggle(Math.floor(Math.random()*grid.length));
+  if(countLeft()===0){toggle(Math.floor(Math.random()*grid.length));}
+  moves=0;
+  msg.textContent="Shob light off kore din!";
+  render();
+  updateHud();
+  loadBest();
+}
+function count(){return size*size;}
+function setSize(n){
+  size=n;
+  m4.classList.toggle("active",n===4);
+  m5.classList.toggle("active",n===5);
+  newGame();
+}
+boardEl.addEventListener("click",function(e){
+  var t=e.target.closest(".cell");
+  if(!t)return;
+  press(parseInt(t.dataset.i,10),false);
+});
+boardEl.addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  var t=e.target.closest(".cell");
+  if(!t)return;
+  e.preventDefault();
+  press(parseInt(t.dataset.i,10),false);
+});
+resetBtn.addEventListener("click",newGame);
+m4.addEventListener("click",function(){setSize(4);});
+m5.addEventListener("click",function(){setSize(5);});
+setSize(5);
+})();
+</script>
+</body>
+</html>

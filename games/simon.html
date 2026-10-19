@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Color Sequence</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=simon">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
@@ -32,6 +33,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
 </style>
 </head>
 <body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Color Sequence — PlayNova</h1>
 <div class="wrap">
   <div class="title">Color Sequence</div>
   <div class="hud">
@@ -40,7 +42,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
     <div class="pill">Best: <b id="best">0</b></div>
   </div>
   <div class="dots" id="dots"></div>
-  <div class="status" id="status">Start doro — sequence mone rakho ar repeat koro!</div>
+  <div class="status" id="status">Press Start — Memorize and repeat the light sequence!</div>
   <div class="pads" id="pads">
     <button class="pad green" data-i="0" aria-label="green"></button>
     <button class="pad red" data-i="1" aria-label="red"></button>
@@ -50,7 +52,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
   <div class="row">
     <button class="btn" id="startBtn">▶ Shuru Kor</button>
   </div>
-  <p class="hint">Sequence dekho, tarpor oi order-ei colors tap koro. Bhul korle streak shesh — notun shuru!</p>
+  <p class="hint">Watch the pattern sequence, then tap each pad in order. One mistake ends the streak!</p>
 </div>
 
 <script>
@@ -113,7 +115,7 @@ function playSequence(){
     if(i>=sequence.length){
       clearInterval(iv);
       accepting=true;inputIdx=0;setPads(true);
-      statusEl.textContent="Ekhon tap koro!";
+      statusEl.textContent="Your turn — Repeat pattern!";
       drawDots();
       return;
     }

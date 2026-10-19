@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Whiz</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=math-quiz">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif}
@@ -33,6 +34,7 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
 </style>
 </head>
 <body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Math Whiz — PlayNova</h1>
 <div class="wrap">
   <div class="diff">
     <button class="d-btn active" data-d="easy">😊 Easy</button>
@@ -58,9 +60,9 @@ html,body{min-height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI
 </div>
 
 <div class="overlay" id="ov">
-  <h2 id="ovTitle">Shesh!</h2>
+  <h2 id="ovTitle">Quiz Complete!</h2>
   <p id="ovMsg"></p>
-  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+  <button class="btn" id="ovBtn">▶ Play Again</button>
 </div>
 
 <script>
@@ -172,7 +174,7 @@ function finish(){
     bestEl.textContent=best;
     ovTitle.textContent="🏆 Notun Best!";
   }else{
-    ovTitle.textContent="🎉 Shesh!";
+    ovTitle.textContent="🎉 Quiz Complete!";
   }
   ovMsg.textContent="Score: "+score+" · "+correctCount+"/"+totalQ+" thik · Best: "+best;
   ov.classList.add("show");

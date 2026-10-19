@@ -1,6 +1,6 @@
 "use strict";
 /* PlayNova service worker — cache-first static shell, network-first navigation */
-const CACHE = "playnova-v3";
+const CACHE = "playnova-v6";
 const CORE = [
   ".",
   "index.html",
@@ -8,6 +8,7 @@ const CORE = [
   "css/style.css",
   "js/games-data.js",
   "js/main.js",
+  "js/progress.js",
   "manifest.json",
   "public/brand/favicon.svg",
   "public/brand/playnova-icon.svg",
@@ -45,16 +46,22 @@ self.addEventListener("fetch", function (e) {
     return;
   }
 
+  /* stale-while-revalidate: cache theke turant deao, background-e notun version anao */
   e.respondWith(
     caches.match(req).then(function (hit) {
-      if (hit) return hit;
-      return fetch(req).then(function (res) {
-        if (res && res.status === 200 && res.type === "basic") {
-          const copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(req, copy); });
-        }
-        return res;
-      });
+      const refresh = fetch(req)
+        .then(function (res) {
+          if (res && res.status === 200 && res.type === "basic") {
+            const copy = res.clone();
+            caches.open(CACHE).then(function (c) { c.put(req, copy); });
+          }
+          return res;
+        })
+        .catch(function () { return hit; });
+      if (hit) {
+        return refresh.then(function (net) { return net || hit; });
+      }
+      return fetch(req);
     })
   );
 });

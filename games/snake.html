@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Neon Snake</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=snake">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
@@ -22,6 +23,7 @@ canvas{background:#0a0f1f;border:1px solid rgba(255,255,255,.12);border-radius:1
 </style>
 </head>
 <body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Neon Snake — PlayNova</h1>
 <div class="wrap">
   <div class="hud">
     <span>Score: <b id="score">0</b></span>
@@ -37,7 +39,7 @@ canvas{background:#0a0f1f;border:1px solid rgba(255,255,255,.12);border-radius:1
 <div class="overlay" id="overlay">
   <h2 id="ovTitle">😿 Game Over</h2>
   <p id="ovMsg">Score: 0</p>
-  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+  <button class="btn" id="ovBtn">▶ Play Again</button>
 </div>
 
 <script>
@@ -52,6 +54,8 @@ canvas.width=COLS*CELL;canvas.height=ROWS*CELL;
 var snake,dir,nextDir,food,score,best=0,speedLvl,timer,DELAY,running=false,paused=false,dead=false;
 try{best=parseInt(localStorage.getItem("gvp_snake_best"))||0}catch(e){}
 bestEl.textContent=best;
+var AC=null;
+function snd(freq,dur,vol){try{if(!AC){var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A()}if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=freq;o.connect(g);g.connect(AC.destination);var t=AC.currentTime;g.gain.setValueAtTime(vol||0.05,t);g.gain.exponentialRampToValueAtTime(0.001,t+(dur||0.09));o.start(t);o.stop(t+(dur||0.09)+0.02)}catch(e){}}
 
 function reset(){
   snake=[{x:11,y:11},{x:10,y:11},{x:9,y:11}];
@@ -84,6 +88,7 @@ function step(){
   if(head.x===food.x&&head.y===food.y){
     score+=10;
     scoreEl.textContent=score;
+    snd(740,0.07,0.05);
     placeFood();
     if(score%50===0&&speedLvl<8){
       speedLvl++;

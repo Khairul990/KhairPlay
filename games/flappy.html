@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Flappy Bird</title>
+<link rel="canonical" href="https://khairplay.vercel.app/pages/play.html?id=flappy">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#05070f;color:#eef2ff;font-family:"Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
@@ -21,6 +22,7 @@ canvas{border:1px solid rgba(255,255,255,.12);border-radius:14px;max-width:100%;
 </style>
 </head>
 <body>
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;border:0">Flappy Bird — PlayNova</h1>
 <div class="wrap">
   <div class="hud">
     <div class="pill">Score: <b id="score">0</b></div>
@@ -28,13 +30,13 @@ canvas{border:1px solid rgba(255,255,255,.12);border-radius:14px;max-width:100%;
     <button class="btn" id="restartBtn">↻ Restart</button>
   </div>
   <canvas id="c"></canvas>
-  <div class="hint">Click / Space / Tap — udan shuru korun!</div>
+  <div class="hint">Click / Space / Tap — Take flight! Avoid pipes!</div>
 </div>
 
 <div class="overlay" id="ov">
   <h2 id="ovTitle">😿 Game Over</h2>
   <p id="ovMsg"></p>
-  <button class="btn" id="ovBtn">▶ Abar Kheln</button>
+  <button class="btn" id="ovBtn">▶ Play Again</button>
 </div>
 
 <script>
@@ -50,10 +52,12 @@ canvas.width=W*dpr;canvas.height=H*dpr;
 canvas.style.width="min(92vw,420px)";
 canvas.style.height="auto";
 ctx.scale(dpr,dpr);
-var bird,pipes,score,best=0,started,dead,frame,ground,clouds;
+var bird,pipes,score,best=0,started,dead,frame,ground,clouds,paused=false;
 try{best=parseInt(localStorage.getItem("gvp_flappy_best"))||0}catch(e){}
 bestEl.textContent=best;
 var GROUND_H=64,GRAV=0.42,JUMP=-7.4,GAP=150,SPEED=2.4,PIPE_W=64,PIPE_EVERY=95;
+var AC=null;
+function snd(freq,dur,vol){try{if(!AC){var A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A()}if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=freq;o.connect(g);g.connect(AC.destination);var t=AC.currentTime;g.gain.setValueAtTime(vol||0.05,t);g.gain.exponentialRampToValueAtTime(0.001,t+(dur||0.09));o.start(t);o.stop(t+(dur||0.09)+0.02)}catch(e){}}
 
 function reset(){
   bird={x:96,y:H/2-20,vy:0,r:14,rot:0,wing:0};
@@ -93,7 +97,7 @@ function step(){
     var p=pipes[i];
     if(!dead)p.x-=SPEED;
     if(!p.scored&&p.x+PIPE_W<bird.x-bird.r){
-      p.scored=true;score++;scoreEl.textContent=score;
+      p.scored=true;score++;scoreEl.textContent=score;snd(880,0.08,0.05);
     }
     if(p.x<-PIPE_W-10)pipes.splice(i,1);
   }
@@ -109,7 +113,7 @@ function step(){
   }
 }
 function gameOver(hitPipe){
-  dead=true;started=false;
+  dead=true;started=false;snd(160,0.3,0.07);
   var msg="Score: "+score+" · Best: "+best;
   if(score>best){
     best=score;
@@ -205,18 +209,31 @@ function draw(){
   }
 }
 function loop(){
-  step();
-  draw();
+  if(!paused){step();draw();}
+  else{
+    ctx.fillStyle="rgba(5,7,15,.6)";
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="#eef2ff";ctx.font="800 26px Segoe UI, Arial";ctx.textAlign="center";
+    ctx.fillText("⏸ PAUSED",W/2,H/2-8);
+    ctx.font="600 14px Segoe UI, Arial";ctx.fillStyle="#9aa7d0";
+    ctx.fillText("Press P to Resume",W/2,H/2+22);
+  }
   requestAnimationFrame(loop);
 }
+function togglePause(){if(dead||!started)return;paused=!paused;}
 document.addEventListener("keydown",function(e){
   if(e.key===" "||e.key==="ArrowUp"){
     e.preventDefault();
+    if(paused)paused=false;
     flap();
   }
+  if(e.key==="p"||e.key==="P"||e.key==="Escape")togglePause();
 },{passive:false});
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden&&started&&!dead)paused=true;
+});
 canvas.addEventListener("mousedown",flap);
-document.addEventListener("touchstart",function(e){e.preventDefault();flap()},{passive:false});
+document.addEventListener("touchstart",function(e){if(e.target.closest("button"))return;e.preventDefault();flap()},{passive:false});
 restartBtn.addEventListener("click",reset);
 ovBtn.addEventListener("click",reset);
 reset();
