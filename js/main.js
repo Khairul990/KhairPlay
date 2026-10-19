@@ -6,6 +6,10 @@ const GVP = (function () {
   const GAME_LIMIT_KEY = "gvp_plays";
   const RECENT_KEY = "gvp_recent";
   const RATINGS_KEY = "gvp_ratings";
+  const FAVS_KEY = "gvp_favorites";
+  const PROGRESS_KEY = "gvp_progress";
+
+  let applyGameFilter = null;
 
   function getConfig() {
     try {
@@ -106,6 +110,131 @@ const GVP = (function () {
     return s;
   }
 
+  function getFavs() {
+    try {
+      const v = JSON.parse(localStorage.getItem(FAVS_KEY));
+      return Array.isArray(v) ? v.filter(function (x) { return typeof x === "string"; }) : [];
+    } catch (e) { return []; }
+  }
+
+  function isFav(id) { return getFavs().indexOf(id) !== -1; }
+
+  function setFav(id, on) {
+    const f = getFavs();
+    const i = f.indexOf(id);
+    if (on && i === -1) f.push(id);
+    if (!on && i !== -1) f.splice(i, 1);
+    try { localStorage.setItem(FAVS_KEY, JSON.stringify(f)); } catch (e) {}
+    return on;
+  }
+
+  function getFavGames() {
+    return getFavs().map(getGameById).filter(function (g) { return g && g.enabled; });
+  }
+
+  function favBtnHTML(id) {
+    const on = isFav(id);
+    return '<button class="fav-btn' + (on ? " on" : "") + '" type="button" data-fav="' + id + '"' +
+      ' aria-pressed="' + on + '" aria-label="Favourite" title="Favourite e rakhun">' +
+      (on ? "♥" : "♡") + '</button>';
+  }
+
+  function refreshFavButtons(id) {
+    document.querySelectorAll('.fav-btn[data-fav="' + id + '"]').forEach(function (b) {
+      const on = isFav(id);
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+      b.textContent = on ? "♥" : "♡";
+    });
+    const action = document.getElementById("favBtn");
+    if (action && action.getAttribute("data-fav") === id) setFavActionState(action, id);
+  }
+
+  function setFavActionState(btn, id) {
+    const on = isFav(id);
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.textContent = on ? "♥ Favourited" : "♡ Favourite";
+  }
+
+  function initFavourites() {
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest ? e.target.closest(".fav-btn") : null;
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const id = btn.getAttribute("data-fav");
+      const g = getGameById(id);
+      if (!g) return;
+      const now = !isFav(id);
+      setFav(id, now);
+      refreshFavButtons(id);
+      toast(now ? "♥ " + g.title + " favourites-e add" : "Favourites theke soriye dewa holo");
+      renderHomeSections();
+      if (document.querySelector('.filter-btn[data-cat="favorites"].active') && applyGameFilter) applyGameFilter();
+    }, false);
+  }
+
+  function getPlayCounts() {
+    try {
+      const s = JSON.parse(localStorage.getItem(PROGRESS_KEY));
+      const counts = s && s.games && typeof s.games === "object" ? s.games : {};
+      const clean = {};
+      Object.keys(counts).forEach(function (k) {
+        const n = Number(counts[k]);
+        if (isFinite(n) && n > 0) clean[k] = n;
+      });
+      return clean;
+    } catch (e) { return {}; }
+  }
+
+  /* Trending = most-played on THIS device; honest fallback to a curated
+     featured + newest mix for visitors with no play history. */
+  function getTrendingGames(n) {
+    const counts = getPlayCounts();
+    const enabled = GAMES.filter(function (g) { return g.enabled; });
+    const played = enabled.filter(function (g) { return counts[g.id]; });
+    if (played.length >= Math.min(n, 4)) {
+      return played.sort(function (a, b) { return counts[b.id] - counts[a.id]; }).slice(0, n);
+    }
+    const seen = {};
+    const out = [];
+    enabled.filter(function (g) { return g.featured; }).forEach(function (g) {
+      if (!seen[g.id]) { seen[g.id] = 1; out.push(g); }
+    });
+    getNewGames(n).forEach(function (g) {
+      if (!seen[g.id]) { seen[g.id] = 1; out.push(g); }
+    });
+    enabled.forEach(function (g) {
+      if (out.length < n && !seen[g.id]) { seen[g.id] = 1; out.push(g); }
+    });
+    return out.slice(0, n);
+  }
+
+  /* Recommended = unplayed games from the categories you play most,
+     falling back to curated picks for first-time visitors. */
+  function getRecommendedGames(n) {
+    const counts = getPlayCounts();
+    const enabled = GAMES.filter(function (g) { return g.enabled; });
+    const playedIds = Object.keys(counts);
+    if (!playedIds.length) {
+      return getFeaturedGames().concat(getEducationalPicks(n))
+        .filter(function (g, i, arr) { return arr.findIndex(function (x) { return x.id === g.id; }) === i; })
+        .slice(0, n);
+    }
+    const catWeight = {};
+    playedIds.forEach(function (id) {
+      const g = getGameById(id);
+      if (g) catWeight[g.category] = (catWeight[g.category] || 0) + counts[id];
+    });
+    const score = function (g) { return (catWeight[g.category] || 0) * 100 + (counts[g.id] || 0); };
+    const unplayed = enabled.filter(function (g) { return !counts[g.id]; })
+      .sort(function (a, b) { return score(b) - score(a); });
+    const rest = enabled.filter(function (g) { return counts[g.id]; })
+      .sort(function (a, b) { return score(b) - score(a); });
+    return unplayed.concat(rest).slice(0, n);
+  }
+
   function gameCardHTML(g) {
     const thumb = g.thumb
       ? '<img src="' + basePath() + g.thumb + '" alt="' + g.title + '" loading="lazy" width="400" height="225">'
@@ -118,7 +247,7 @@ const GVP = (function () {
     const catBadge = '<span class="cat-badge badge-' + g.category + '">' + (CATEGORIES.find(function (c) { return c.id === g.category; }) || { icon: "" }).icon + "</span>";
     return '<article class="game-card">' +
       '<div class="' + thumbClass + '" style="background:' + (g.thumb ? "var(--raised)" : "linear-gradient(135deg," + g.color + "33," + g.color + "14)") + '">' +
-      (thumb || g.icon) + catBadge + '</div>' +
+      (thumb || g.icon) + catBadge + favBtnHTML(g.id) + '</div>' +
       '<div class="game-body">' +
       '<h3>' + g.title + '</h3>' +
       '<p>' + g.description + '</p>' +
@@ -166,22 +295,52 @@ const GVP = (function () {
     } catch (e) { return []; }
   }
 
-  function initHome() {
-    renderCategories("catGrid");
-    renderCategoryShortcuts("catShortcuts");
+  function renderHomeSections() {
     renderGames("featuredGrid", getFeaturedGames().slice(0, 8));
+    renderGames("trendingGrid", getTrendingGames(4));
     renderGames("newGrid", getNewGames(4));
     renderGames("eduGrid", getEducationalPicks(4));
+    renderGames("recommendedGrid", getRecommendedGames(4));
+
     const recent = getRecentGames();
     const recentSection = document.getElementById("recentSection");
     if (recentSection) {
       if (recent.length) {
         renderGames("recentGrid", recent);
         recentSection.hidden = false;
+      } else {
+        recentSection.hidden = true;
       }
     }
+
+    const favSection = document.getElementById("favSection");
+    if (favSection) {
+      const favs = getFavGames();
+      if (favs.length) {
+        renderGames("favGrid", favs.slice(0, 8));
+        favSection.hidden = false;
+      } else {
+        favSection.hidden = true;
+      }
+    }
+  }
+
+  function initHome() {
+    renderCategories("catGrid");
+    renderCategoryShortcuts("catShortcuts");
+    renderHomeSections();
     const stat = document.getElementById("statGames");
     if (stat) stat.textContent = GAMES.filter(function (g) { return g.enabled; }).length;
+
+    const heroPlay = document.getElementById("heroPlay");
+    if (heroPlay) {
+      const featured = getFeaturedGames().filter(function (g) { return g.enabled; })[0] || GAMES[0];
+      if (featured) {
+        heroPlay.href = playURL(featured.id);
+        heroPlay.setAttribute("aria-label", "Play " + featured.title + " now");
+        heroPlay.title = "▶ " + featured.title;
+      }
+    }
     initMotion();
   }
 
@@ -239,27 +398,36 @@ const GVP = (function () {
     const initialQ = params.get("q") || "";
     if (search && initialQ) search.value = initialQ;
 
-    document.querySelectorAll(".filter-btn").forEach(function (b) {
+    const countFor = function (cat) {
+      if (cat === "all") return GAMES.filter(function (g) { return g.enabled; }).length;
+      if (cat === "favorites") return getFavGames().length;
+      return getGamesByCategory(cat).length;
+    };
+
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    filterBtns.forEach(function (b) {
       if (b.dataset.cat === activeCat) b.classList.add("active");
-      const catCount = b.dataset.cat === "all"
-        ? GAMES.filter(function (g) { return g.enabled; }).length
-        : getGamesByCategory(b.dataset.cat).length;
-      const cnt = document.createElement("span");
-      cnt.className = "fcount";
-      cnt.textContent = catCount;
-      b.appendChild(cnt);
+      b.appendChild(document.createElement("span")).className = "fcount";
       b.addEventListener("click", function () {
-        document.querySelectorAll(".filter-btn").forEach(function (x) { x.classList.remove("active"); });
+        filterBtns.forEach(function (x) { x.classList.remove("active"); });
         b.classList.add("active");
         activeCat = b.dataset.cat;
         apply();
       });
     });
 
+    function refreshCounts() {
+      filterBtns.forEach(function (b) {
+        const c = b.querySelector(".fcount");
+        if (c) c.textContent = countFor(b.dataset.cat);
+      });
+    }
+
     function apply() {
       const q = (search && search.value || "").trim().toLowerCase();
       let list = GAMES.filter(function (g) { return g.enabled; });
-      if (activeCat !== "all") list = list.filter(function (g) { return g.category === activeCat; });
+      if (activeCat === "favorites") list = getFavGames();
+      else if (activeCat !== "all") list = list.filter(function (g) { return g.category === activeCat; });
       if (q) {
         list = list.filter(function (g) {
           return (g.title + " " + g.description + " " + g.tags.join(" ")).toLowerCase().indexOf(q) !== -1;
@@ -268,7 +436,10 @@ const GVP = (function () {
       renderGames("allGamesGrid", list);
       const c = document.getElementById("gameCount");
       if (c) c.textContent = list.length;
+      refreshCounts();
     }
+
+    applyGameFilter = apply;
 
     if (search) search.addEventListener("input", apply);
     apply();
@@ -321,6 +492,19 @@ const GVP = (function () {
     if (catTag) {
       const cat = CATEGORIES.find(function (c) { return c.id === g.category; });
       if (cat) catTag.innerHTML = cat.icon + ' <a href="' + basePath() + 'pages/games.html?cat=' + cat.id + '">' + cat.title + "</a>";
+    }
+
+    const favAction = document.getElementById("favBtn");
+    if (favAction) {
+      favAction.setAttribute("data-fav", g.id);
+      setFavActionState(favAction, g.id);
+      favAction.addEventListener("click", function () {
+        const now = !isFav(g.id);
+        setFav(g.id, now);
+        setFavActionState(favAction, g.id);
+        refreshFavButtons(g.id);
+        toast(now ? "♥ " + g.title + " favourites-e add" : "Favourites theke soriye dewa holo");
+      });
     }
 
     const share = document.getElementById("shareBtn");
@@ -541,6 +725,7 @@ const GVP = (function () {
   document.addEventListener("DOMContentLoaded", function () {
     initHeader();
     initAnnouncement();
+    initFavourites();
     initHome();
     initGamesPage();
     initGamePage();

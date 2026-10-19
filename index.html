@@ -71,8 +71,9 @@
         <h1>Thousands of Free Online Games for Everyone</h1>
         <p>Ekti jaygay shob kichu â€” shishuder jonno safe games, shikkhamulok khel ar dimag baranor challenge. 100% free, kono download nai, shobkichu browser-e chole.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="pages/games.html">â–¶ Explore Games</a>
-          <a class="btn btn-ghost" href="pages/games.html?cat=educational">ðŸŽ“ Educational Games</a>
+          <a class="btn btn-primary" id="heroPlay" href="pages/games.html">▶ Play Now</a>
+          <a class="btn btn-ghost" href="pages/games.html">🎮 Browse All Games</a>
+          <a class="btn btn-ghost" href="pages/games.html?cat=educational">🎓 Educational Games</a>
         </div>
         <div class="cat-shortcuts" id="catShortcuts"></div>
         <div class="hero-stats">
@@ -104,10 +105,20 @@
     <section class="section">
       <div class="container">
         <div class="section-head">
-          <h2><span class="accent"></span>â­ Featured Games</h2>
-          <a href="pages/games.html">Shob dekhun â†’</a>
+          <h2><span class="accent"></span>⭐ Featured Games</h2>
+          <a href="pages/games.html">Shob dekhun →</a>
         </div>
         <div class="game-grid" id="featuredGrid"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2><span class="accent"></span>🔥 Trending Games</h2>
+          <a href="pages/games.html">Shob dekhun →</a>
+        </div>
+        <div class="game-grid" id="trendingGrid"></div>
       </div>
     </section>
 
@@ -131,10 +142,30 @@
     <section class="section">
       <div class="container">
         <div class="section-head">
-          <h2><span class="accent"></span>ðŸŽ“ Educational Picks</h2>
-          <a href="pages/games.html?cat=educational">Shob dekhun â†’</a>
+          <h2><span class="accent"></span>🎓 Educational Picks</h2>
+          <a href="pages/games.html?cat=educational">Shob dekhun →</a>
         </div>
         <div class="game-grid" id="eduGrid"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2><span class="accent"></span>💡 Recommended for You</h2>
+          <a href="pages/games.html">Shob dekhun →</a>
+        </div>
+        <div class="game-grid" id="recommendedGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="favSection" hidden>
+      <div class="container">
+        <div class="section-head">
+          <h2><span class="accent"></span>♥ My Favourites</h2>
+          <a href="pages/games.html?cat=favorites">Shob dekhun →</a>
+        </div>
+        <div class="game-grid" id="favGrid"></div>
       </div>
     </section>
 

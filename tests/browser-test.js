@@ -309,6 +309,92 @@ function readGameRegistry() {
     await page.close();
   }
 
+  /* ---------- 8. FAVOURITES / TRENDING / RECOMMENDED ---------- */
+  console.log('\n[8] discovery + favourites');
+  {
+    const page = await browser.newPage();
+    await attach(page, 'discovery');
+    await page.setViewport({ width: 1280, height: 900 });
+
+    await page.goto(BASE + '/index.html', { waitUntil: 'networkidle2', timeout: 45000 });
+    await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+    await page.goto(BASE + '/index.html', { waitUntil: 'networkidle2', timeout: 45000 });
+
+    const heroHref = await page.$eval('#heroPlay', (e) => e.getAttribute('href')).catch(() => null);
+    if (heroHref && /play\.html\?id=/.test(heroHref)) ok(`hero Play Now -> ${heroHref}`);
+    else bad(`hero Play Now href invalid: ${heroHref}`);
+
+    for (const [id, label] of [['trendingGrid', 'Trending'], ['recommendedGrid', 'Recommended'], ['featuredGrid', 'Featured']]) {
+      const n = await page.$$eval('#' + id + ' .game-card', (els) => els.length).catch(() => -1);
+      if (n > 0) ok(`${label} section renders ${n} cards`);
+      else bad(`${label} section #${id} rendered ${n} cards`);
+    }
+
+    const favHiddenBefore = await page.$eval('#favSection', (e) => e.hasAttribute('hidden')).catch(() => null);
+    if (favHiddenBefore === true) ok('favourites section hidden when empty');
+    else bad(`favourites section hidden=${favHiddenBefore} when empty`);
+
+    // click first heart on the homepage
+    const firstHeart = await page.$('#featuredGrid .fav-btn');
+    if (!firstHeart) bad('no .fav-btn rendered on game cards');
+    else {
+      const targetId = await firstHeart.evaluate((b) => b.getAttribute('data-fav'));
+      await firstHeart.click();
+      await new Promise((r) => setTimeout(r, 400));
+
+      const pressed = await page.$eval('.fav-btn[data-fav="' + targetId + '"]', (b) => b.getAttribute('aria-pressed')).catch(() => null);
+      if (pressed === 'true') ok(`heart click sets aria-pressed=true for ${targetId}`);
+      else bad(`heart aria-pressed=${pressed} for ${targetId}`);
+
+      const favShown = await page.$eval('#favSection', (e) => !e.hasAttribute('hidden')).catch(() => null);
+      if (favShown === true) ok('favourites section reveals after adding one');
+      else bad(`favourites section still hidden after add (shown=${favShown})`);
+
+      // persist across reload
+      await page.reload({ waitUntil: 'networkidle2' });
+      await new Promise((r) => setTimeout(r, 500));
+      const persisted = await page.$eval('.fav-btn[data-fav="' + targetId + '"]', (b) => b.getAttribute('aria-pressed')).catch(() => null);
+      if (persisted === 'true') ok('favourite persists across reload (localStorage)');
+      else bad(`favourite not persisted after reload (=${persisted})`);
+
+      // library favourites filter
+      await page.goto(BASE + '/pages/games.html?cat=favorites', { waitUntil: 'networkidle2' });
+      await new Promise((r) => setTimeout(r, 500));
+      const favCards = await page.$$eval('#allGamesGrid .game-card', (els) => els.length).catch(() => -1);
+      const favIds = await page.$$eval('#allGamesGrid .game-card .fav-btn', (els) => els.map((e) => e.getAttribute('data-fav'))).catch(() => []);
+      if (favCards === 1 && favIds[0] === targetId) ok(`library ?cat=favorites shows only the saved game (${favIds[0]})`);
+      else bad(`library favorites filter returned ${favCards} cards, ids=${favIds.join(',')}`);
+
+      // empty favourites state
+      await page.evaluate((id) => {
+        const b = document.querySelector('.fav-btn[data-fav="' + id + '"]');
+        if (b) b.click();
+      }, targetId);
+      await new Promise((r) => setTimeout(r, 400));
+      const afterRemove = await page.$$eval('#allGamesGrid .game-card', (els) => els.length).catch(() => -1);
+      const emptyEl = await page.$('#allGamesGrid .empty');
+      if (afterRemove === 0 && emptyEl) ok('empty state shown when favourites cleared');
+      else warn(`after removing favourite: cards=${afterRemove} emptyEl=${!!emptyEl}`);
+    }
+
+    // play page favourite action
+    await page.goto(BASE + '/pages/play.html?id=snake', { waitUntil: 'networkidle2' });
+    await new Promise((r) => setTimeout(r, 500));
+    const actionBefore = await page.$eval('#favBtn', (e) => e.getAttribute('aria-pressed')).catch(() => null);
+    await page.click('#favBtn');
+    await new Promise((r) => setTimeout(r, 400));
+    const actionAfter = await page.$eval('#favBtn', (e) => e.getAttribute('aria-pressed')).catch(() => null);
+    if (actionBefore !== actionAfter && actionAfter === 'true') ok(`play page favourite toggles (${actionBefore} -> ${actionAfter})`);
+    else bad(`play page favourite did not toggle (${actionBefore} -> ${actionAfter})`);
+
+    // related games populated
+    const related = await page.$$eval('#relatedGrid .game-card', (els) => els.length).catch(() => -1);
+    if (related > 0) ok(`related games rendered (${related})`);
+    else bad(`related games rendered ${related}`);
+
+    await page.close();
+  }
+
   await browser.close();
   server.close();
 
