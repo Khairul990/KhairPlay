@@ -1,92 +1,97 @@
 # PlayNova Premium Evolution — Delivery Report
 
-Branch: `feature/premium-evolution` (off `main` @ `08cbcf5`)
-Pushed: yes — Vercel **preview** deploy (production branch `main` untouched)
-Live production: https://khairplay.vercel.app/ (unchanged)
-Preview: Vercel dashboard → https://vercel.com/khairul18-s-projects1/khairplay/6CurqNujbfvDt3QwgKyFu5rqJPKj
-
-Commits (latest first)
-1. `299f1b6` Phase 5 — progress system
-2. `af93986` Phase 4 — 5 new games (22 total)
-3. `2c1eadc` Phase 3 — upgrade originals
-4. `9ac37b5` Phase 1 — audit fixes
-5. `08cbcf5` (main) — base point
+**Branch:** `feature/premium-evolution` (12 commits ahead of `origin/main` @ `73bea88`)
+**Head:** `6f11d9b`
+**Changed:** 57 files (+5028 / −65)
+**Production:** https://khairplay.vercel.app/ — **unchanged**, still serving `main` @ `73bea88` (verified: 200, no discovery sections, 17 games)
 
 ---
 
-## Phase 1 — Audit fixes (all done)
+## Verification (actually run, in this repo)
 
-| # | Finding | Fix | Verified |
-|---|---------|-----|----------|
-| 1,4 | SW served stale assets (cache-first, manual version) | stale-while-revalidate for non-navigation requests; cache bumped `playnova-v4` → `v5` | sw.js inspected, tests pass |
-| 2 | sitemap had relative `<loc>` | all 27 URLs absolute (`https://khairplay.vercel.app/...`) incl. 5 new games | static test |
-| 3 | `og:image` was SVG (FB/Twitter unsupported) | new `public/brand/share-card.png` 1200×630 (valid PNG) + `og:image:width/height` | PNG header + rendered |
-| 5 | missing meta on 404/games/play (+about/contact/privacy/terms) | description + og:title/type/image/site_name added; play page og refreshed dynamically by JS | static test |
-| 6 | relative JSON-LD `url` + canonical | absolute canonical + JSON-LD url | static test |
-| 7 | reaction "no game-over screen" | reviewed: already has per-round chips, avg/best, mode summary — no change needed | playtest pending |
-| 8 | some games lacked instruction lines | added to tic-tac-toe, memory; verified others already have | playtest pending |
-| 9 | a11y gaps | global `:focus-visible` outlines for links/buttons/inputs | tests pass |
-| 10 | empty dirs `assets/img`, `games/js` | harmless, ignored (no build step) | — |
-| 11 | admin client-side + ads.txt placeholder | kept as-is by design (documented) | — |
-| 12 | inconsistent pause pattern | pause added to Flappy; snake/2048/breakout already had it | playtest pending |
+```
+node tests/audit.js          → PASS (0 failures, 5 warnings)
+node tests/browser-test.js   → 117 pass / 0 fail / 0 warnings / 0 runtime errors
+```
 
-## Phase 2 — Design polish (done)
+Both suites are committed and reproducible: `tests/audit.js` (zero-dependency static audit) and `tests/browser-test.js` (real headless Chrome via `puppeteer-core`, 10 sections). `.vercelignore` keeps `tests/` out of the deployment.
 
-- Hero `<h1>` gradient text; card hover "▶" play overlay (z-index fixed vs category badge)
-- iframe loading skeleton (spinner + shimmer) with 6 s fail-safe; removed on iframe `load`
-- Filter chips now show live counts; section-head arrow slides on hover
-- Category tag next to play-page title (links back to filtered list)
-- `:focus-visible` a11y rings; reduced-motion respected for all new animations
+Sections covered by the browser suite: header/nav, search + deep links, **every registry game launching cleanly**, 404 page, responsive overflow at 320/375/768/1024/1440, keyboard accessibility, manifest + service worker, discovery/favourites, player restart + fullscreen, and playability of the two newest games.
 
-## Phase 3 — Upgraded all 10 original games
+The 5 remaining audit warnings are intentional, not defects: `404.html` has no canonical (it is `noindex`, so a canonical would contradict it) and 4 `innerHTML` sink review notes for code that only ever receives registry data or escaped values.
 
-- **Neon Snake** — eat sound (WebAudio, quiet)
-- **Flappy Bird** — Pause (P/Esc, auto-pause on tab hide), score + crash sounds, mobile button tap fix
-- **2048** — merge sound, undo already present
-- **Brick Breaker** — brick-hit/hit-break sounds, pause already present
-- **Tic Tac Toe** — rules line (minimax AI + persisted stats confirmed working)
-- **Memory Match** — instruction line (per-difficulty best time already present)
-- **Math Whiz**, **Word Builder**, **Flag Explorer**, **Reaction Rush** — reviewed: already had difficulty/timer/streak/best/modes; no changes required
-- All game IDs, routes, score keys untouched
+### A test bug that was found and fixed
 
-## Phase 4 — 5 new original games (all self-contained, tested-to-parse & headless-run)
+The audit parsed `games-data.js` with one lazy regex over the whole `GAMES` array. Because the `thumb` capture group was optional and the quantifiers lazy, `thumb` never matched for **any** entry — every game reported "has no thumb", and a genuinely missing thumbnail was indistinguishable from the noise. Confirmed by deleting `thumb-snake.svg` (audit failed) and restoring it (audit passed). Warnings dropped 29 → 5.
 
-| id | Title | Category | Best key | Notes |
-|----|-------|----------|----------|-------|
-| `space-shooter` | Space Shooter | Challenge | `gvp_space_best` | waves, 2-HP enemies, lives, mobile fire/left/right buttons |
-| `runner` | Endless Runner | Kids | `gvp_runner_best` | double jump, slide, coins, speed ramp |
-| `racing` | Racing Challenge | Challenge | `gvp_racing_best` | 3 lanes, swipe/keyboard/touch, lives |
-| `platformer` | Platform Adventure | Kids | `gvp_platform_best` | 3 levels, coins, patrolling enemies, goal flag |
-| `tower-defense` | Tower Defense | Challenge | `gvp_td_best` | 2 tower types, waves, gold/lives, path grid |
+---
 
-Each shipped with: SVG thumbnail, `games-data.js` entry, sitemap URL, admin best-score row.
-All 5: pause (P/Esc where applicable), auto-pause on tab hide, restart, best score, Banglish copy.
+## Commits (oldest first)
 
-## Phase 5 — Progress system (device-only, honestly labelled)
+| Commit | What |
+|--------|------|
+| `9ac37b5` | Phase 1 audit fixes: SW stale-while-revalidate, absolute sitemap/canonical/JSON-LD, PNG share card, og meta |
+| `2c1eadc` | Phase 3: pause + sounds (flappy/breakout), merge/eat sounds (2048/snake), instruction lines |
+| `af93986` | Phase 4: 5 original games (space shooter, runner, racing, platformer, tower defence) → 22 games |
+| `299f1b6` | Phase 5: progress system (`js/progress.js`) — XP/levels, 8 achievements, daily challenge |
+| `f198bed` | earlier delivery report (superseded by this file) |
+| `9f161e1` | QA harness: `tests/audit.js` + `tests/browser-test.js`, `.vercelignore` |
+| `69de275` | **Two critical fixes** — invalid `allow-fullscreen` iframe sandbox flag; nav overflow at 761–825px |
+| `555857e` | Discovery: favourites, trending, recommended, hero "Play Now" |
+| `55d0c06` | Player restart + fullscreen, with a reachable in-frame exit control |
+| `06cfd4a` | **Two new games** — Slide Puzzle + Lights Out → 24 games |
+| `75b9549` | SEO: canonical on `play.html` + all 24 game pages, hidden `<h1>`, SW cache `v6` |
+| `6f11d9b` | Audit parser fix (thumbnail check) |
 
-`js/progress.js` — key `gvp_progress`:
-- XP: +5 per play, +10 first time each game per day, level = every 50 XP
-- Daily challenge: play 3 games today (resets daily)
-- 8 achievements: First Steps, Explorer, Collector, Completionist, All-Rounder, Rising Star, On Fire (3-day streak), Daily Done
-- XP/level toast notifications; `#progressPanel` section on home page
-- Every place states clearly: progress saves **only in this browser/device** (no login, no backend, no global leaderboard)
+## Two critical defects fixed (`69de275`)
 
-## Phase 6 — QA / performance
+1. **Invalid `allow-fullscreen` iframe sandbox flag** in `js/main.js` — it is not a real sandbox token and produced a console error on **all** game pages.
+2. **Nav overflowed the viewport by up to 49px** in the 761–825px band — the burger/dropdown breakpoint was `760px` while the nav could not fit until `860px`.
 
-- `verify-playnova.js` (static): **ALL PASS** — 22 games, thumbs/addedAt, IDs, links, no old-brand leftovers, progress wiring, ads still disabled
-- `dom-test-playnova.js` (jsdom): **ALL PASS** — home/games/play/admin flows, full route smoke (incl. all 5 new games + thumbs + progress.js), progress XP/badge/daily math, admin 22/22
-- `game-runner-test.js` (new): runs all 22 game pages in jsdom with a stubbed canvas — **all clean**
-  - only flag: `typing.html` uses `scrollIntoView` which jsdom doesn't implement (works in real browsers)
-- Weight: core shell ≈ **81 KB** (html+css+js+manifest+sw, excl. 136 KB share PNG); 22 game files ≈ 184 KB total
+## Games: 17 (production) → 24 (this branch)
 
-## Known limitations (honest)
+| id | Title | Category |
+|----|-------|----------|
+| `space-shooter` | Space Shooter | Challenge |
+| `runner` | Endless Runner | Kids |
+| `racing` | Racing Challenge | Challenge |
+| `platformer` | Platform Adventure | Kids |
+| `tower-defense` | Tower Defense | Challenge |
+| `slide-puzzle` | Slide Puzzle | Educational |
+| `lights-out` | Lights Out | Challenge |
 
-- Game balance / mobile feel is **not** play-tested by a human — headless checks catch crashes and syntax, not fun or touch comfort
-- No global leaderboard / accounts (would need a backend + privacy review) — deliberately not faked
-- Ads remain **disabled** (`adsEnabled:false`, placeholder publisher id) until a valid AdSense config is supplied
-- Admin panel is client-side only (as before, documented)
+The seven are original, self-contained HTML (no external assets, no third-party code). Each ships with an SVG thumbnail, a `games-data.js` entry, a sitemap URL, and an admin high-score row.
 
-## Next step (needs your approval)
+The two newest were verified **playable**, not merely loadable (browser-test section [10]): board sizes render, 3x3↔4x4 mode switch resets the counter, tapping advances moves, arrow keys move a tile, the "lights left" HUD tracks the board after every move, and reset deals a fresh board.
 
-1. Open the preview link, playtest the 5 new games + the touch controls on a phone
-2. If OK → merge `feature/premium-evolution` into `main` (production deploy) or tell me what to change first
+## Discovery and player
+
+- Favourites (heart on every card, `?cat=favorites` filter, section on home), trending and recommended rails driven by real play counts, hero "Play Now" wired to the top featured game.
+- Player toolbar: **restart** (reloads the iframe in place, restores the loading skeleton, game verified interactive afterwards) and **fullscreen** (feature-detected; disabled with an honest note where unsupported). Because the toolbar sits outside the fullscreened element, an in-frame **"Exit Fullscreen"** button is rendered inside the player box, CSS-gated on `:fullscreen` — exit is reachable by click as well as Esc.
+
+## SEO / performance
+
+- Absolute canonicals on every indexable page, including `pages/play.html`, which had none.
+- All 24 game pages: canonical pointing at the play page that embeds them, plus a visually hidden `<h1>` (absolutely positioned and clipped — no layout impact).
+- `sitemap.xml`: 30 URLs. `robots.txt` allows everything except `/admin/` and points at the sitemap.
+- Card thumbnails already ship `loading="lazy"` with explicit `width`/`height`.
+- Service worker uses stale-while-revalidate; cache bumped to `playnova-v6` because core shell assets changed.
+- `public/brand/share-card.png` (1200×630, 140 KB) exists **in this branch** — production currently 404s on it because `main` does not have it.
+
+---
+
+## Honest limitations
+
+- **The preview deployment could not be publicly verified.** Vercel Deployment Protection is enabled for this project: `https://khairplay-git-feature-premium-evolution-khairul18-s-projects1.vercel.app/` returns `200 title="Login - Vercel"`. The Vercel *build* succeeded for `75b9549` (commit status `context=Vercel state=success`), but its output cannot be inspected without a logged-in session.
+- Game feel, balance and touch comfort are **not** human play-tested. The suites catch crashes, broken wiring, console errors, overflow and dead links — not whether a game is fun.
+- No accounts, no global leaderboard, no backend. Progress is device-local and every UI surface says so.
+- Ads stay **disabled** (`SITE_CONFIG.adsEnabled = false`) until a real AdSense config is supplied.
+- The admin panel is client-side only.
+- The PWA has an SVG icon only; Android installability wants 192/512 PNGs, which cannot be generated without an image toolchain here.
+
+## What needs you (owner-only)
+
+1. **Verify the preview** — either disable Deployment Protection for the preview environment (Vercel → Project → Settings → Deployment Protection), or supply a `VERCEL_TOKEN` so the deployment can be checked, or open the preview URL while logged into Vercel and playtest it.
+2. **Approve going live** — merging `feature/premium-evolution` into `main` deploys to production. Say the word and it will be merged.
+
+Nothing else is blocking.
