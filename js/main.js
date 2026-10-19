@@ -305,7 +305,7 @@ const GVP = (function () {
     if (pl) pl.textContent = g.players;
     wrap.innerHTML =
       '<div class="frame-skeleton"><div class="sk-spinner"></div><div class="sk-text">Game load hocche...</div></div>' +
-      '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-fullscreen"></iframe>';
+      '<iframe src="' + basePath() + g.iframe + '" title="' + g.title + '" loading="lazy" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups"></iframe>';
     const iframe = wrap.querySelector("iframe");
     if (iframe) {
       iframe.addEventListener("load", function () {

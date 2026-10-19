@@ -603,7 +603,7 @@ h1, h2, h3, h4 { font-family: var(--font-head); letter-spacing: 0.2px; }
 @media (max-width: 860px) {
   .footer-grid { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .burger { display: block; }
   .nav-links {
     position: absolute;
@@ -619,6 +619,8 @@ h1, h2, h3, h4 { font-family: var(--font-head); letter-spacing: 0.2px; }
   }
   .nav-links.open { display: flex; }
   .nav-links a { padding: 12px 14px; }
+}
+@media (max-width: 760px) {
   .game-frame-box iframe { height: min(64vh, 480px); }
 }
 @media (max-width: 520px) {
