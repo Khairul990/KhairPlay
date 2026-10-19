@@ -279,6 +279,10 @@ const GVP = (function () {
     document.title = g.title + " — Play Free Online | " + SITE_CONFIG.name;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute("content", g.description + " — " + SITE_CONFIG.name + " theke free online kheln.");
+    const ogT = document.querySelector('meta[property="og:title"]');
+    if (ogT) ogT.setAttribute("content", g.title + " — Play Free Online | PlayNova");
+    const ogD = document.querySelector('meta[property="og:description"]');
+    if (ogD) ogD.setAttribute("content", g.description);
     injectGameSchema(g);
     const t = document.getElementById("gameTitle");
     if (t) t.textContent = g.title;
