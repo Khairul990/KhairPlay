@@ -427,6 +427,16 @@ const GVP = (function () {
       }).join("") + '<a class="cat-pill" href="' + basePath() + 'pages/games.html">⚡ All Games</a>';
     }
 
+    const heroPlay = document.getElementById("heroPlay");
+    if (heroPlay) {
+      const featured = getFeaturedGames().filter(function (g) { return g.enabled; })[0] || GAMES[0];
+      if (featured) {
+        heroPlay.href = playURL(featured.id);
+        heroPlay.setAttribute("aria-label", "Play " + featured.title + " now");
+        heroPlay.title = "\u25B6 " + featured.title;
+      }
+    }
+
     renderHomeSections();
     initHeroMatrix();
     initScrollReveal();
