@@ -1655,3 +1655,46 @@ a:focus-visible, button:focus-visible, input:focus-visible, .cat-card:focus-visi
   transform: none;
 }
 
+/* =========================================================
+   HEADER RESPONSIVE HARDENING (no horizontal overflow)
+   The full desktop row (logo + search + wallet bar + full
+   nav links) needs about 1240px. Below that we shed one
+   cluster at a time instead of letting the page scroll
+   sideways. Phones keep a compact wallet bar so the Vault
+   and Daily Wheel stay reachable.
+   ========================================================= */
+@media (max-width: 1240px) and (min-width: 861px) {
+  .nova-wallet-bar { display: none; }
+}
+@media (max-width: 1000px) {
+  .nav-search { display: none; }
+}
+@media (max-width: 600px) {
+  .nova-wallet-bar { gap: 6px; }
+  .wallet-pill { padding: 4px 8px; font-size: 12px; }
+  .wallet-pill.gems,
+  .wallet-pill.vip,
+  .btn-sound-toggle { display: none; }
+  .btn-daily-spin { padding: 6px 10px; }
+  .btn-daily-spin span { display: none; }
+  .wallet-pill b {
+    display: inline-block;
+    max-width: 7ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+}
+@media (max-width: 480px) {
+  /* drop the wordmark, keep the icon link (text stays for screen readers) */
+  .logo span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
